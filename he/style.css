@@ -530,6 +530,17 @@ footer .e-con-boxed.e-con.e-parent:first-child .e-con-inner .e-con-full {
     place-self: start!important;
     place-self: flex-start!important;
 }
+footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner {
+    flex-direction: column-reverse;
+    display: flex;
+    gap: 1rem!important;
+    margin-top: 1rem;
+}
+footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
+    width: -webkit-fill-available; width: -moz-available;
+    align-items: center;
+}
+
 .he-footer-menu .menu {
     grid-template-columns: repeat(3,minmax(0,1fr)) !important;
     display: grid !important;
