@@ -873,3 +873,22 @@ document.addEventListener("DOMContentLoaded", function() {
         footerContainer.innerHTML = menuHTML;
     }
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Targetkan elemen SVG dengan class 'telegram'
+    const telegramIcon = document.querySelector('.telegram');
+
+    if (telegramIcon) {
+        // 2. Ambil elemen <a> yang membungkusnya
+        const parentLink = telegramIcon.closest('a');
+        
+        if (parentLink) {
+            // Ubah href menjadi link LinkedIn
+            parentLink.setAttribute('href', 'https://www.linkedin.com/in/harianexpress');
+        }
+
+        // 3. Ganti konten SVG Telegram dengan SVG LinkedIn
+        // Kita juga menghapus class 'telegram' agar lebih akurat secara semantik
+        telegramIcon.outerHTML = '<svg class="linkedin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6.94 5a2 2 0 1 1-4-.002a2 2 0 0 1 4 .002M7 8.48H3V21h4zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91z"/></svg>';
+    }
+});
