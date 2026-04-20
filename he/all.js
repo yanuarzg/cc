@@ -876,7 +876,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Targetkan elemen SVG dengan class 'telegram'
-    const telegramIcon = document.querySelector('.telegram');
+    const telegramIcon = document.querySelector('footer #HTML3 .telegram');
 
     if (telegramIcon) {
         // 2. Ambil elemen <a> yang membungkusnya
