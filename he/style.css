@@ -525,6 +525,16 @@ a.logo_link img, .jlh-d .logo_small_wrapper_table .logo_small_wrapper .logo_link
 	max-width: unset!important;
 }
 
+.he-footer-menu .menu {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    display: grid !important;
+    padding: 0px;
+    grid-column-gap: 7px !important;
+    grid-row-gap: 7px !important;
+}
+.he-footer-menu .menu-item {
+    list-style: none;
+}
 
 /* laptop */
 @media only screen and (max-width:1366px){
