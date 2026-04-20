@@ -823,3 +823,53 @@ document.addEventListener('DOMContentLoaded', function() {
         target.appendChild(elementToMove);
     }
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Cari elemen kontainer di footer
+    const footerContainer = document.querySelector('.he-footer-menu');
+
+    // Jika elemen ditemukan, masukkan menu
+    if (footerContainer) {
+        const menuHTML = `
+            <ul id="menu-main" class="menu">
+                <li class="menu-item"><a href="https://harianexpress.com/news/">News</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/global/">Global</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/nasional/">Nasional</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/daerah/">Daerah</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/politik/">Politik</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/pemilu/">Pemilu</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/kementrian/">Kementrian</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/bumn/">BUMN</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/korporasi/">Korporasi</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/selebriti/">Selebriti</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/surat-pembaca/">Surat Pembaca</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/kolom/">Kolom</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/netizen/">Netizen</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/cek-fakta/">Cek Fakta</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/hankam/">Hankam</a></li>
+                <li class="menu-item"><a href="https://humaniora.harianexpress.com/">Humaniora</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/hukum/">Hukum</a></li>
+                <li class="menu-item"><a href="https://tekno.harianexpress.com">Tekno</a></li>
+                <li class="menu-item"><a href="https://wanita.harianexpress.com/">Wanita</a></li>
+                <li class="menu-item"><a href="https://properti.harianexpress.com/">Properti</a></li>
+                <li class="menu-item"><a href="https://travel.harianexpress.com/">Travel</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/komunitas/">Komunitas</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/event/">Event</a></li>
+                <li class="menu-item"><a href="https://otomotif.harianexpress.com/">Otomotif</a></li>
+                <li class="menu-item"><a href="https://bola.harianexpress.com/">Bola</a></li>
+                <li class="menu-item"><a href="https://olahraga.harianexpress.com/">Olahraga</a></li>
+                <li class="menu-item"><a href="https://umkm.harianexpress.com/">UMKM</a></li>
+                <li class="menu-item"><a href="https://edu.harianexpress.com/">Edukasi</a></li>
+                <li class="menu-item"><a href="https://finance.harianexpress.com/">Finance</a></li>
+                <li class="menu-item"><a href="https://foto.harianexpress.com/">Foto</a></li>
+                <li class="menu-item"><a href="https://video.harianexpress.com/">Video</a></li>
+                <li class="menu-item"><a href="https://health.harianexpress.com/">Health</a></li>
+                <li class="menu-item"><a href="https://lifestyle.harianexpress.com/">Lifestyle</a></li>
+                <li class="menu-item"><a href="https://nature.harianexpress.com/">Nature</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/indeks/?khusus=headline">Headline</a></li>
+                <li class="menu-item"><a href="https://harianexpress.com/trending/">Trending</a></li>
+            </ul>`;
+        
+        footerContainer.innerHTML = menuHTML;
+    }
+});
