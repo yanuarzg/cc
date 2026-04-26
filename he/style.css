@@ -646,6 +646,10 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 		max-width: 220px!important;
 		aspect-ratio:16/9!important;
 	}
+	.recent-blg-multi.grid ul li img, .recent-blg-multi.grid ul li .post-img, .recent-wp-multi.grid ul li img, .recent-wp-multi.grid ul li .post-img, .recent-blg .post-img, .recent-wp .post-img, .recent-blg .post-img img, .recent-wp .post-img img, .recent-wp-multi ul li img, .recent-wp-multi ul li .post-img {
+		max-width: 9rem;
+	    aspect-ratio: 3/2;
+	}
 	footer .elementor-element.e-con-full.e-flex.e-con.e-child {
 		padding-inline: 0;
 	}
