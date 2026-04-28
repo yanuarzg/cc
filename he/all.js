@@ -27,8 +27,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION: 5 * 60 * 1000, // 5 menit
-    ERROR_MESSAGE: '<p>Gagal memuat konten. Silakan coba lagi nanti.</p>'
+    CACHE_DURATION : 5 * 60 * 1000,  // 5 menit
+    FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
+    RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
+    ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
   };
 
   // ============================================================
@@ -206,15 +208,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
   // WORDPRESS OPTIMIZED FETCH
-  // Strategi thumbnail: _embed (primary) + batch media (fallback)
-  // Param offset: (start - 1), berbasis 0 untuk WP REST API
+  // - Timeout dari config.FETCH_TIMEOUT (20 detik)
+  // - Retry 1x otomatis jika timeout/network error
+  // - Tidak menulis error langsung ke container (caller yang handle)
   // ============================================================
-  async function fetchWPOptimized(source, catId, count, offset, container) {
+  async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
     const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
     const cached = getCached(cacheKey);
     if (cached) return cached;
 
-    // Gunakan _embed=wp:featuredmedia agar thumbnail ikut dalam satu response
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
             + `&orderby=date&order=desc`
@@ -223,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (catId) url += `&categories=${catId}`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), config.FETCH_TIMEOUT);
 
     try {
       const res = await fetch(url, {
@@ -233,15 +235,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       clearTimeout(timeout);
 
-      if (!res.ok) throw new Error('HTTP error');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const posts = await res.json();
 
-      // Cek apakah _embedded berhasil terisi untuk semua post
       const missingEmbedIds = posts
         .filter(p => p.featured_media && !p._embedded?.['wp:featuredmedia']?.[0])
         .map(p => p.featured_media);
 
-      // Fallback: batch fetch untuk post yang _embedded-nya kosong
       let mediaMap = {};
       if (missingEmbedIds.length > 0) {
         try {
@@ -273,9 +273,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     } catch (err) {
       clearTimeout(timeout);
-      console.error(`WP fetch failed for ${source}:`, err.message);
-      if (container) container.innerHTML = config.ERROR_MESSAGE;
-      return [];
+      // Retry 1x otomatis setelah RETRY_DELAY
+      if (attempt < 2) {
+        console.warn(`WP fetch gagal (${source}), retry dalam ${config.RETRY_DELAY / 1000}s…`);
+        await new Promise(r => setTimeout(r, config.RETRY_DELAY));
+        return fetchWPOptimized(source, catId, count, offset, container, 2);
+      }
+      console.error(`WP fetch failed (${source}):`, err.message);
+      return []; // kembalikan array kosong, jangan tulis error ke container
     }
   }
 
@@ -305,9 +310,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
   // BLOGGER OPTIMIZED
-  // Param startIndex: nilai langsung dari data-start (1-based)
+  // - Timeout JSONP 20 detik (script tag tidak punya AbortController,
+  //   pakai setTimeout untuk cleanup manual)
+  // - Retry 1x otomatis jika timeout/error
+  // - Tidak menulis error langsung ke container (caller yang handle)
   // ============================================================
-  function loadBloggerOptimized(source, category, count, startIndex, callback, container) {
+  function loadBloggerOptimized(source, category, count, startIndex, callback, container, attempt = 1) {
     const cacheKey = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
     const cached = getCached(cacheKey);
 
@@ -318,7 +326,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const cbName = 'blgCb_' + Math.random().toString(36).slice(2);
 
+    // Timeout manual untuk JSONP
+    const timer = setTimeout(() => {
+      const scriptEl = document.getElementById(cbName);
+      if (scriptEl) scriptEl.remove();
+      delete window[cbName];
+
+      if (attempt < 2) {
+        console.warn(`Blogger JSONP timeout (${source}), retry…`);
+        setTimeout(() => {
+          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
+        }, config.RETRY_DELAY);
+      } else {
+        console.error(`Blogger fetch failed (${source}): timeout`);
+        callback([]); // kembalikan kosong, jangan tulis error ke container
+      }
+    }, config.FETCH_TIMEOUT);
+
     window[cbName] = function (data) {
+      clearTimeout(timer);
       const scriptEl = document.getElementById(cbName);
       if (scriptEl) scriptEl.remove();
       delete window[cbName];
@@ -344,11 +370,20 @@ document.addEventListener("DOMContentLoaded", function () {
     script.id = cbName;
     script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&start-index=${startIndex}&callback=${cbName}`;
     script.onerror = () => {
+      clearTimeout(timer);
       const scriptEl = document.getElementById(cbName);
       if (scriptEl) scriptEl.remove();
       delete window[cbName];
-      if (container) container.innerHTML = config.ERROR_MESSAGE;
-      callback([]);
+
+      if (attempt < 2) {
+        console.warn(`Blogger JSONP error (${source}), retry…`);
+        setTimeout(() => {
+          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
+        }, config.RETRY_DELAY);
+      } else {
+        console.error(`Blogger fetch failed (${source}): script error`);
+        callback([]); // kembalikan kosong, jangan tulis error ke container
+      }
     };
     document.body.appendChild(script);
   }
@@ -360,10 +395,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const source = container.getAttribute('data-source');
     const count  = parseInt(container.getAttribute('data-items')) || 5;
     const start  = parseInt(container.getAttribute('data-start'))  || 1;
-    const offset = start - 1; // WP REST API: offset berbasis 0
+    const offset = start - 1;
 
     const posts = await fetchWPOptimized(source, null, count, offset, container);
-    container.innerHTML = renderList(posts);
+    if (posts.length) {
+      container.innerHTML = renderList(posts);
+    } else {
+      container.innerHTML = config.ERROR_MESSAGE;
+    }
     container.removeAttribute('aria-busy');
   };
 
@@ -377,10 +416,14 @@ document.addEventListener("DOMContentLoaded", function () {
   window.loadSingleBlogger = function(container) {
     const source     = container.getAttribute('data-source');
     const count      = parseInt(container.getAttribute('data-items')) || 5;
-    const startIndex = parseInt(container.getAttribute('data-start'))  || 1; // Blogger: 1-based
+    const startIndex = parseInt(container.getAttribute('data-start'))  || 1;
 
     loadBloggerOptimized(source, null, count, startIndex, posts => {
-      container.innerHTML = renderList(posts);
+      if (posts.length) {
+        container.innerHTML = renderList(posts);
+      } else {
+        container.innerHTML = config.ERROR_MESSAGE;
+      }
       container.removeAttribute('aria-busy');
     }, container);
   };
@@ -438,7 +481,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Terapkan offset global: potong dari posisi start, ambil sejumlah total
     const slicedPosts = allPosts.slice(globalOffset, globalOffset + total);
-    container.innerHTML = slicedPosts.length ? renderList(slicedPosts) : config.ERROR_MESSAGE;
+    if (slicedPosts.length) {
+      container.innerHTML = renderList(slicedPosts);
+    } else {
+      // Semua source gagal atau tidak ada artikel sama sekali
+      container.innerHTML = config.ERROR_MESSAGE;
+    }
     container.removeAttribute('aria-busy');
   };
 
@@ -485,7 +533,12 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           // Terapkan offset global: potong dari posisi start, ambil sejumlah total
           const slicedEntries = allEntries.slice(globalOffset, globalOffset + total);
-          container.innerHTML = slicedEntries.length ? renderList(slicedEntries) : config.ERROR_MESSAGE;
+          if (slicedEntries.length) {
+            container.innerHTML = renderList(slicedEntries);
+          } else {
+            // Semua source gagal atau tidak ada artikel sama sekali
+            container.innerHTML = config.ERROR_MESSAGE;
+          }
           container.removeAttribute('aria-busy');
         }
       }, container);
