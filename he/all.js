@@ -353,16 +353,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
   // MULTI-SOURCE WP
+  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
+  // bukan per-source — karena tiap site punya artikel berbeda.
+  // Fetch selalu dari offset=0, ambil lebih banyak agar slice valid.
   // ============================================================
   window.loadMultiWP = async function(container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
     const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category = container.getAttribute('data-category') || '';
-    const total    = parseInt(container.getAttribute('data-items')) || 10;
-    const sort     = container.getAttribute('data-sort') || 'date';
-    const start    = parseInt(container.getAttribute('data-start'))  || 1;
-    const offset   = start - 1; // WP REST API: offset berbasis 0
+    const category  = container.getAttribute('data-category') || '';
+    const total     = parseInt(container.getAttribute('data-items')) || 10;
+    const sort      = container.getAttribute('data-sort') || 'date';
+    const start     = parseInt(container.getAttribute('data-start')) || 1;
+    const globalOffset = start - 1; // 0-based, diterapkan setelah merge
+
+    // Fetch lebih banyak per-source agar setelah dipotong offset global
+    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
+    const fetchCount = total + globalOffset;
 
     if (!sources.length) return;
 
@@ -376,7 +383,8 @@ document.addEventListener("DOMContentLoaded", function () {
         catId = await fetchWPCategory(source, category);
         if (!catId) return [];
       }
-      return fetchWPOptimized(source, catId, total, offset, container);
+      // offset=0: selalu mulai dari artikel pertama tiap source
+      return fetchWPOptimized(source, catId, fetchCount, 0, container);
     });
 
     const results = await Promise.allSettled(promises);
@@ -390,7 +398,8 @@ document.addEventListener("DOMContentLoaded", function () {
       allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
     }
 
-    const slicedPosts = allPosts.slice(0, total);
+    // Terapkan offset global: potong dari posisi start, ambil sejumlah total
+    const slicedPosts = allPosts.slice(globalOffset, globalOffset + total);
     container.innerHTML = slicedPosts.length ? renderList(slicedPosts) : config.ERROR_MESSAGE;
     container.removeAttribute('aria-busy');
   };
@@ -401,15 +410,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
   // MULTI-SOURCE BLOGGER
+  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
+  // bukan start-index per-source — karena tiap blog punya artikel berbeda.
+  // Fetch selalu dari start-index=1, ambil lebih banyak agar slice valid.
   // ============================================================
   window.loadMultiBlogger = function(container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
-    const sources    = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category   = container.getAttribute('data-category') || '';
-    const total      = parseInt(container.getAttribute('data-items')) || 10;
-    const sort       = container.getAttribute('data-sort') || 'date';
-    const startIndex = parseInt(container.getAttribute('data-start'))  || 1; // Blogger: 1-based
+    const sources       = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
+    const category      = container.getAttribute('data-category') || '';
+    const total         = parseInt(container.getAttribute('data-items')) || 10;
+    const sort          = container.getAttribute('data-sort') || 'date';
+    const start         = parseInt(container.getAttribute('data-start')) || 1;
+    const globalOffset  = start - 1; // 0-based, diterapkan setelah merge
+
+    // Fetch lebih banyak per-source agar setelah dipotong offset global
+    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
+    const fetchCount = total + globalOffset;
 
     if (!sources.length) return;
 
@@ -419,7 +436,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let completed  = 0;
 
     sources.forEach(source => {
-      loadBloggerOptimized(source, category, total, startIndex, entries => {
+      // startIndex=1: selalu mulai dari artikel pertama tiap source
+      loadBloggerOptimized(source, category, fetchCount, 1, entries => {
         allEntries = allEntries.concat(entries);
         completed++;
 
@@ -427,7 +445,8 @@ document.addEventListener("DOMContentLoaded", function () {
           if (sort === 'date') {
             allEntries.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
           }
-          const slicedEntries = allEntries.slice(0, total);
+          // Terapkan offset global: potong dari posisi start, ambil sejumlah total
+          const slicedEntries = allEntries.slice(globalOffset, globalOffset + total);
           container.innerHTML = slicedEntries.length ? renderList(slicedEntries) : config.ERROR_MESSAGE;
           container.removeAttribute('aria-busy');
         }
