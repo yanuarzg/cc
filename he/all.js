@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   function renderSkeleton() {
     const skeletonHTML = `
-      <li style="display:flex;gap:12px;margin-bottom:15px;align-items:center;">
+      <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
         <div class="skeleton-img" style="aspect-ratio:16/9;width:-moz-available;width:-webkit-fill-available;height:auto;max-height:124px!important;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;"></div>
         <div class='dn' style="flex:1;">
           <div class="skeleton-title" style="height:14px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:3px;width:80%;margin-bottom:8px;"></div>
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!items.length) return '<p>Tidak ada konten.</p>';
     return '<ul style="list-style:none;padding:0;margin:0;">' +
       items.map(item => `
-        <li style="display:flex;gap:12px;margin-bottom:15px;align-items:center;">
+        <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
           <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
             <img src="${item.img}"
                alt="${escapeHTML(item.title)}"
