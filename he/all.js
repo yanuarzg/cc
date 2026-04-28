@@ -8,6 +8,14 @@
  * - Preconnect DNS
  * - Skeleton loader responsif (4 desktop, 2 mobile)
  * - Support data-start untuk offset artikel
+ * 
+ * CHANGELOG:
+ * - v1.4: Fix artikel baru tidak muncul setelah refresh.
+ *         Ganti cache: 'force-cache' → 'no-cache' pada semua WP fetch.
+ *         'force-cache' menyebabkan browser menggunakan HTTP cache lama
+ *         bahkan setelah halaman di-refresh, mengabaikan artikel baru.
+ *         'no-cache' tetap memanfaatkan browser cache via 304 Not Modified,
+ *         tapi selalu re-validasi ke server terlebih dahulu.
  */
 
 (() => {
@@ -211,6 +219,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // - Timeout dari config.FETCH_TIMEOUT (20 detik)
   // - Retry 1x otomatis jika timeout/network error
   // - Tidak menulis error langsung ke container (caller yang handle)
+  //
+  // FIX v1.4: Ganti cache: 'force-cache' → 'no-cache'
+  // 'force-cache' menyebabkan browser mengabaikan artikel baru karena
+  // menggunakan HTTP cache lama bahkan setelah halaman di-refresh.
+  // 'no-cache' akan tetap memanfaatkan cache browser via 304 Not Modified
+  // jika konten tidak berubah, tapi selalu re-validasi ke server.
   // ============================================================
   async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
     const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
@@ -231,7 +245,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const res = await fetch(url, {
         signal: controller.signal,
         mode: 'cors',
-        cache: 'force-cache'
+        cache: 'no-cache' // FIX: was 'force-cache' — caused stale articles after refresh
       });
       clearTimeout(timeout);
 
@@ -249,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const mediaUrl = `https://${source}/wp-json/wp/v2/media`
                          + `?include=${uniqueIds.join(',')}`
                          + `&_fields=id,source_url,media_details`;
-          const mediaRes = await fetch(mediaUrl, { cache: 'force-cache' });
+          const mediaRes = await fetch(mediaUrl, { cache: 'no-cache' }); // FIX: was 'force-cache'
           const mediaData = await mediaRes.json();
           mediaData.forEach(m => {
             mediaMap[m.id] = m.media_details?.sizes?.medium?.source_url
@@ -292,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const res = await fetch(
         `https://${source}/wp-json/wp/v2/categories?search=${encodeURIComponent(categoryName)}&per_page=5&_fields=id,slug,name`,
-        { cache: 'force-cache' }
+        { cache: 'no-cache' } // FIX: was 'force-cache'
       );
       const cats = await res.json();
       if (!cats.length) return null;
