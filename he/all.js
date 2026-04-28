@@ -2,11 +2,12 @@
  * OPTIMIZED FEEDS LOADER WITH SKELETON
  * Fitur optimasi:
  * - localStorage cache (5 menit)
- * - Lazy loading (IntersectionObserver)
+ * - Lazy loading (trigger on first scroll, fallback 3 detik)
  * - Parallel fetch dengan AbortController
  * - Fetch hanya field penting (tanpa _embed)
  * - Preconnect DNS
  * - Skeleton loader responsif (4 desktop, 2 mobile)
+ * - Support data-start untuk offset artikel
  */
 
 (() => {
@@ -27,7 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   const config = {
     CACHE_DURATION: 5 * 60 * 1000, // 5 menit
-    LAZY_LOAD_THRESHOLD: '200px',  // mulai load saat 200px dari viewport
     ERROR_MESSAGE: '<p>Gagal memuat konten. Silakan coba lagi nanti.</p>'
   };
 
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
       </li>
     `;
 
-    // Desktop: 4, Mobile: 2 (bisa diadjust dengan media query jika perlu)
+    // Desktop: 4, Mobile: 2
     const count = window.innerWidth >= 768 ? 4 : 2;
     const items = Array(count).fill(skeletonHTML).join('');
 
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }));
     } catch (e) {
       if (e.name === 'QuotaExceededError') {
-        localStorage.clear(); // atau hapus selective jika perlu
+        localStorage.clear();
       }
     }
   }
@@ -139,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
         link.crossOrigin = 'anonymous';
         head.appendChild(link);
 
-        // Fallback dns-prefetch
         const dnsLink = document.createElement('link');
         dnsLink.rel = 'dns-prefetch';
         dnsLink.href = `https://${domain}`;
@@ -149,41 +148,51 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // LAZY LOAD OBSERVER
+  // LAZY LOAD — trigger on first scroll, fallback 3 detik
+  // Tidak perlu menunggu container masuk ke layar
   // ============================================================
-  const lazyLoadObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const container = entry.target;
-        const loader = container.dataset.loader;
+  function loadAllFeeds() {
+    const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
+    document.querySelectorAll(selectors).forEach(function(container) {
+      if (container.dataset.loaded) return; // skip jika sudah dimuat
+      container.dataset.loaded = '1';
 
-        // Tampilkan skeleton dan set aria-busy
-        container.innerHTML = renderSkeleton();
-        container.setAttribute('aria-busy', 'true');
+      const loader = container.dataset.loader;
 
-        if (loader && window[loader]) {
-          window[loader](container);
-          delete container.dataset.loader; // jangan load ulang
-        }
+      // Tampilkan skeleton segera
+      container.innerHTML = renderSkeleton();
+      container.setAttribute('aria-busy', 'true');
 
-        lazyLoadObserver.unobserve(container);
+      if (loader && window[loader]) {
+        window[loader](container);
+        delete container.dataset.loader;
       }
     });
-  }, { rootMargin: config.LAZY_LOAD_THRESHOLD });
+  }
+
+  // Trigger sekali saat ada aktivitas scroll pertama
+  window.addEventListener('scroll', function onFirstScroll() {
+    window.removeEventListener('scroll', onFirstScroll);
+    loadAllFeeds();
+  }, { passive: true });
+
+  // Fallback: tetap load setelah 3 detik jika user tidak scroll
+  setTimeout(loadAllFeeds, 3000);
 
   // ============================================================
   // WORDPRESS OPTIMIZED FETCH
+  // Param offset: (start - 1), berbasis 0 untuk WP REST API
   // ============================================================
-  async function fetchWPOptimized(source, catId, count, container) {
-    const cacheKey = `wp_${source}_${catId || 'all'}_${count}`;
+  async function fetchWPOptimized(source, catId, count, offset, container) {
+    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
     const cached = getCached(cacheKey);
     if (cached) return cached;
 
-    let url = `https://${source}/wp-json/wp/v2/posts?per_page=${count}&_fields=id,title,link,date,featured_media&orderby=date&order=desc`;
+    let url = `https://${source}/wp-json/wp/v2/posts?per_page=${count}&offset=${offset}&_fields=id,title,link,date,featured_media&orderby=date&order=desc`;
     if (catId) url += `&categories=${catId}`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     try {
       const res = await fetch(url, { 
@@ -196,7 +205,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!res.ok) throw new Error('HTTP error');
       const posts = await res.json();
 
-      // Ambil thumbnail hanya untuk post yang punya featured_media
       const mediaIds = [...new Set(posts.filter(p => p.featured_media).map(p => p.featured_media))];
       let mediaMap = {};
 
@@ -209,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
             mediaMap[m.id] = m.source_url;
           });
         } catch {
-          // jika gagal ambil media, lanjut tanpa thumbnail
+          // lanjut tanpa thumbnail jika gagal
         }
       }
 
@@ -258,10 +266,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // BLOGGER OPTIMIZED (sudah cepat, tambah cache)
+  // BLOGGER OPTIMIZED
+  // Param startIndex: nilai langsung dari data-start (1-based)
   // ============================================================
-  function loadBloggerOptimized(source, category, count, callback, container) {
-    const cacheKey = `blg_${source}_${category || 'all'}_${count}`;
+  function loadBloggerOptimized(source, category, count, startIndex, callback, container) {
+    const cacheKey = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
     const cached = getCached(cacheKey);
 
     if (cached) {
@@ -295,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const labelPath = category ? `/-/${encodeURIComponent(category)}/` : '/';
     const script = document.createElement('script');
     script.id = cbName;
-    script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&callback=${cbName}`;
+    script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&start-index=${startIndex}&callback=${cbName}`;
     script.onerror = () => {
       const scriptEl = document.getElementById(cbName);
       if (scriptEl) scriptEl.remove();
@@ -307,30 +316,32 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // SINGLE WP (lazy load)
+  // SINGLE WP
   // ============================================================
   window.loadSingleWP = async function(container) {
     const source = container.getAttribute('data-source');
-    const count = parseInt(container.getAttribute('data-items')) || 5;
+    const count  = parseInt(container.getAttribute('data-items')) || 5;
+    const start  = parseInt(container.getAttribute('data-start'))  || 1;
+    const offset = start - 1; // WP REST API: offset berbasis 0
 
-    const posts = await fetchWPOptimized(source, null, count, container);
+    const posts = await fetchWPOptimized(source, null, count, offset, container);
     container.innerHTML = renderList(posts);
     container.removeAttribute('aria-busy');
   };
 
   document.querySelectorAll('.recent-wp').forEach(container => {
     container.dataset.loader = 'loadSingleWP';
-    lazyLoadObserver.observe(container);
   });
 
   // ============================================================
-  // SINGLE BLOGGER (lazy load)
+  // SINGLE BLOGGER
   // ============================================================
   window.loadSingleBlogger = function(container) {
-    const source = container.getAttribute('data-source');
-    const count = parseInt(container.getAttribute('data-items')) || 5;
+    const source     = container.getAttribute('data-source');
+    const count      = parseInt(container.getAttribute('data-items')) || 5;
+    const startIndex = parseInt(container.getAttribute('data-start'))  || 1; // Blogger: 1-based
 
-    loadBloggerOptimized(source, null, count, posts => {
+    loadBloggerOptimized(source, null, count, startIndex, posts => {
       container.innerHTML = renderList(posts);
       container.removeAttribute('aria-busy');
     }, container);
@@ -338,19 +349,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll('.recent-blg').forEach(container => {
     container.dataset.loader = 'loadSingleBlogger';
-    lazyLoadObserver.observe(container);
   });
 
   // ============================================================
-  // MULTI-SOURCE WP (lazy load)
+  // MULTI-SOURCE WP
   // ============================================================
   window.loadMultiWP = async function(container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
     const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
     const category = container.getAttribute('data-category') || '';
-    const total = parseInt(container.getAttribute('data-items')) || 10;
-    const sort = container.getAttribute('data-sort') || 'date';
+    const total    = parseInt(container.getAttribute('data-items')) || 10;
+    const sort     = container.getAttribute('data-sort') || 'date';
+    const start    = parseInt(container.getAttribute('data-start'))  || 1;
+    const offset   = start - 1; // WP REST API: offset berbasis 0
 
     if (!sources.length) return;
 
@@ -364,7 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
         catId = await fetchWPCategory(source, category);
         if (!catId) return [];
       }
-      return fetchWPOptimized(source, catId, total, container);
+      return fetchWPOptimized(source, catId, total, offset, container);
     });
 
     const results = await Promise.allSettled(promises);
@@ -385,29 +397,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll('.recent-wp-multi').forEach(container => {
     container.dataset.loader = 'loadMultiWP';
-    lazyLoadObserver.observe(container);
   });
 
   // ============================================================
-  // MULTI-SOURCE BLOGGER (lazy load)
+  // MULTI-SOURCE BLOGGER
   // ============================================================
   window.loadMultiBlogger = function(container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
-    const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category = container.getAttribute('data-category') || '';
-    const total = parseInt(container.getAttribute('data-items')) || 10;
-    const sort = container.getAttribute('data-sort') || 'date';
+    const sources    = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
+    const category   = container.getAttribute('data-category') || '';
+    const total      = parseInt(container.getAttribute('data-items')) || 10;
+    const sort       = container.getAttribute('data-sort') || 'date';
+    const startIndex = parseInt(container.getAttribute('data-start'))  || 1; // Blogger: 1-based
 
     if (!sources.length) return;
 
     addPreconnect(sources);
 
     let allEntries = [];
-    let completed = 0;
+    let completed  = 0;
 
     sources.forEach(source => {
-      loadBloggerOptimized(source, category, total, entries => {
+      loadBloggerOptimized(source, category, total, startIndex, entries => {
         allEntries = allEntries.concat(entries);
         completed++;
 
@@ -425,7 +437,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll('.recent-blg-multi').forEach(container => {
     container.dataset.loader = 'loadMultiBlogger';
-    lazyLoadObserver.observe(container);
   });
 
 });
@@ -567,7 +578,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     html += '</div>';
 
-    // Inject scrollbar-hide style once
     if (!document.getElementById('banner-scroll-style')) {
       const style = document.createElement('style');
       style.id = 'banner-scroll-style';
@@ -629,7 +639,6 @@ document.addEventListener("DOMContentLoaded", function () {
         card.href = article.link;
         card.target = '_blank';
         card.rel = 'noopener';
-        // Each card snaps individually, fixed width shows ~3 cards at once
         card.style.cssText = `
           flex: 0 0 calc(33.333% - 7px);
           min-width: 0;
@@ -663,7 +672,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // Load articles based on type
     if (sliderConfig.type === 'wordpress') {
       loadWordPressArticles(sliderConfig).then(data => {
         if (data.length > 0) {
@@ -686,7 +694,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // WORDPRESS LOADER
+  // WORDPRESS LOADER (Banner)
   // ============================================================
   async function loadWordPressArticles(config) {
     try {
@@ -705,7 +713,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const res = await fetch(url);
       const posts = await res.json();
   
-      // Fetch semua media secara paralel
       const results = await Promise.all(posts.map(async post => {
         let thumbnail = '';
   
@@ -741,7 +748,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // BLOGGER LOADER
+  // BLOGGER LOADER (Banner)
   // ============================================================
   function loadBloggerArticles(config) {
     return new Promise((resolve) => {
@@ -753,7 +760,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const entries = data.feed.entry || [];
         resolve(entries.map(entry => {
-          // Ambil thumbnail dari media$thumbnail jika ada
           let thumbnail = '';
           try {
             thumbnail = entry.media$thumbnail?.url?.replace('/s72-c/', '/s400-c/') || '';
@@ -815,20 +821,17 @@ document.addEventListener("DOMContentLoaded", function () {
 var d = new Date(); var n = d.getFullYear(); var yearElement = document.getElementById('getYear'); if (yearElement) { yearElement.innerHTML = n; }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const target = document.querySelector('#redaksi');      // elemen tujuan
-    const elementToMove = document.querySelector('.lh-normal'); // elemen yang dipindah
+    const target = document.querySelector('#redaksi');
+    const elementToMove = document.querySelector('.lh-normal');
 
     if (target && elementToMove) {
-        // Pindahkan elemen .lh-normal ke dalam #redaksi
         target.appendChild(elementToMove);
     }
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Cari elemen kontainer di footer
     const footerContainer = document.querySelector('.he-footer-menu');
 
-    // Jika elemen ditemukan, masukkan menu
     if (footerContainer) {
         const menuHTML = `
             <ul id="menu-main" class="menu">
@@ -875,20 +878,15 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. Targetkan elemen SVG dengan class 'telegram'
     const telegramIcon = document.querySelector('footer #HTML3 .telegram');
 
     if (telegramIcon) {
-        // 2. Ambil elemen <a> yang membungkusnya
         const parentLink = telegramIcon.closest('a');
         
         if (parentLink) {
-            // Ubah href menjadi link LinkedIn
             parentLink.setAttribute('href', 'https://www.linkedin.com/in/harianexpress');
         }
 
-        // 3. Ganti konten SVG Telegram dengan SVG LinkedIn
-        // Kita juga menghapus class 'telegram' agar lebih akurat secara semantik
         telegramIcon.outerHTML = '<svg class="linkedin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6.94 5a2 2 0 1 1-4-.002a2 2 0 0 1 4 .002M7 8.48H3V21h4zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91z"/></svg>';
     }
 });
