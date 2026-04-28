@@ -180,7 +180,33 @@ document.addEventListener("DOMContentLoaded", function () {
   setTimeout(loadAllFeeds, 3000);
 
   // ============================================================
+  // HELPER: Ekstrak thumbnail dari satu post WP
+  // Prioritas: _embedded (satu request) → batch media map → placeholder
+  // ============================================================
+  function extractWPThumbnail(post, mediaMap) {
+    // Prioritas 1: _embedded (paling reliable, tidak perlu request kedua)
+    try {
+      const embedded = post._embedded?.['wp:featuredmedia']?.[0];
+      if (embedded) {
+        // Coba ukuran medium dulu, fallback ke full
+        return embedded.media_details?.sizes?.medium?.source_url
+            || embedded.media_details?.sizes?.thumbnail?.source_url
+            || embedded.source_url
+            || null;
+      }
+    } catch { /* lanjut ke fallback */ }
+
+    // Prioritas 2: batch media map (dari request terpisah)
+    if (post.featured_media && mediaMap[post.featured_media]) {
+      return mediaMap[post.featured_media];
+    }
+
+    return null;
+  }
+
+  // ============================================================
   // WORDPRESS OPTIMIZED FETCH
+  // Strategi thumbnail: _embed (primary) + batch media (fallback)
   // Param offset: (start - 1), berbasis 0 untuk WP REST API
   // ============================================================
   async function fetchWPOptimized(source, catId, count, offset, container) {
@@ -188,14 +214,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const cached = getCached(cacheKey);
     if (cached) return cached;
 
-    let url = `https://${source}/wp-json/wp/v2/posts?per_page=${count}&offset=${offset}&_fields=id,title,link,date,featured_media&orderby=date&order=desc`;
+    // Gunakan _embed=wp:featuredmedia agar thumbnail ikut dalam satu response
+    let url = `https://${source}/wp-json/wp/v2/posts`
+            + `?per_page=${count}&offset=${offset}`
+            + `&orderby=date&order=desc`
+            + `&_embed=wp:featuredmedia`
+            + `&_fields=id,title,link,date,featured_media,_embedded,_links`;
     if (catId) url += `&categories=${catId}`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
     try {
-      const res = await fetch(url, { 
+      const res = await fetch(url, {
         signal: controller.signal,
         mode: 'cors',
         cache: 'force-cache'
@@ -205,20 +236,27 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!res.ok) throw new Error('HTTP error');
       const posts = await res.json();
 
-      const mediaIds = [...new Set(posts.filter(p => p.featured_media).map(p => p.featured_media))];
-      let mediaMap = {};
+      // Cek apakah _embedded berhasil terisi untuk semua post
+      const missingEmbedIds = posts
+        .filter(p => p.featured_media && !p._embedded?.['wp:featuredmedia']?.[0])
+        .map(p => p.featured_media);
 
-      if (mediaIds.length > 0) {
+      // Fallback: batch fetch untuk post yang _embedded-nya kosong
+      let mediaMap = {};
+      if (missingEmbedIds.length > 0) {
         try {
-          const mediaUrl = `https://${source}/wp-json/wp/v2/media?include=${mediaIds.join(',')}&_fields=id,source_url`;
+          const uniqueIds = [...new Set(missingEmbedIds)];
+          const mediaUrl = `https://${source}/wp-json/wp/v2/media`
+                         + `?include=${uniqueIds.join(',')}`
+                         + `&_fields=id,source_url,media_details`;
           const mediaRes = await fetch(mediaUrl, { cache: 'force-cache' });
           const mediaData = await mediaRes.json();
           mediaData.forEach(m => {
-            mediaMap[m.id] = m.source_url;
+            mediaMap[m.id] = m.media_details?.sizes?.medium?.source_url
+                          || m.media_details?.sizes?.thumbnail?.source_url
+                          || m.source_url;
           });
-        } catch {
-          // lanjut tanpa thumbnail jika gagal
-        }
+        } catch { /* lanjut tanpa thumbnail */ }
       }
 
       const mapped = posts.map(post => ({
@@ -227,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         rawDate : post.date,
         date    : new Date(post.date).toLocaleDateString('id-ID'),
         source  : source,
-        img     : mediaMap[post.featured_media] || 'https://placehold.co/70x50'
+        img     : extractWPThumbnail(post, mediaMap) || 'https://placehold.co/70x50'
       }));
 
       setCache(cacheKey, mapped);
