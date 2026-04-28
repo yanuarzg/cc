@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <img src="${item.img}"
                alt="${escapeHTML(item.title)}"
                style="width:70px;height:50px;object-fit:cover;border-radius:4px;"
-               onerror="this.src='https://placehold.co/70x50'"/>
+               onerror="this.src='https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'"/>
           </a>
           <div style="flex:1;">
             <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;">
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         rawDate : post.date,
         date    : new Date(post.date).toLocaleDateString('id-ID'),
         source  : source,
-        img     : extractWPThumbnail(post, mediaMap) || 'https://placehold.co/70x50'
+        img     : extractWPThumbnail(post, mediaMap) || 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
       }));
 
       setCache(cacheKey, mapped);
@@ -358,7 +358,7 @@ document.addEventListener("DOMContentLoaded", function () {
         source  : source,
         img     : entry.media$thumbnail
                     ? entry.media$thumbnail.url.replace(/\/s\d+-c\//, '/s320-c/')
-                    : 'https://placehold.co/70x50'
+                    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
       }));
 
       setCache(cacheKey, mapped);
