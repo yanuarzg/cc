@@ -1,908 +1,692 @@
 /**
- * OPTIMIZED FEEDS LOADER WITH SKELETON
- * Fitur optimasi:
- * - localStorage cache (5 menit)
- * - Lazy loading (trigger on first scroll, fallback 3 detik)
- * - Parallel fetch dengan AbortController
- * - Fetch hanya field penting (tanpa _embed)
- * - Preconnect DNS
- * - Skeleton loader responsif (4 desktop, 2 mobile)
- * - Support data-start untuk offset artikel
- * 
- * CHANGELOG:
- * - v1.4: Fix artikel baru tidak muncul setelah refresh.
- *         Ganti cache: 'force-cache' → 'no-cache' pada semua WP fetch.
- *         'force-cache' menyebabkan browser menggunakan HTTP cache lama
- *         bahkan setelah halaman di-refresh, mengabaikan artikel baru.
- *         'no-cache' tetap memanfaatkan browser cache via 304 Not Modified,
- *         tapi selalu re-validasi ke server terlebih dahulu.
+ * OPTIMIZED FEEDS LOADER WITH SKELETON v2.0
+ * -------------------------------------------------
+ * [1] cache: no-cache — artikel baru muncul saat refresh
+ * [2] Above-the-fold langsung dimuat, sisanya tunggu scroll
+ * [3] Thumbnail WP: batch per-source tanpa _embed (lebih ringan)
+ * [4] <style> skeleton diinjek sekali ke <head>
+ * [5] Concurrency limit JSONP Blogger (max 5 paralel)
+ * [6] fetchWPCategory pakai AbortController + timeout
+ * [7] localStorage hapus selektif per prefix, bukan clear semua
+ * [8] Cache key menyertakan versi JS
+ * [9] Pre-compute timestamp sebelum sort
  */
 
+// ============================================================
+// LOGO LINK FIX
+// ============================================================
 (() => {
   'use strict';
   const TARGET_URL = 'https://harianexpress.com';
-  const links = document.querySelectorAll('.logo_link');
-  Array.from(links).forEach(link => {
-    if (link.getAttribute('href') !== TARGET_URL) {
-      link.href = TARGET_URL;
-    }
+  document.querySelectorAll('.logo_link').forEach(link => {
+    if (link.getAttribute('href') !== TARGET_URL) link.href = TARGET_URL;
   });
 })();
 
-document.addEventListener("DOMContentLoaded", function () {
+
+document.addEventListener('DOMContentLoaded', function () {
 
   // ============================================================
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION : 5 * 60 * 1000,  // 5 menit
-    FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
-    RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
-    ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
+    CACHE_VERSION       : 'v2',            // [8] bump saat struktur data cache berubah
+    CACHE_DURATION      : 5 * 60 * 1000,  // 5 menit
+    CACHE_PREFIX        : 'he_feed_',     // [7] prefix selektif, tidak ganggu script lain
+    FETCH_TIMEOUT       : 20 * 1000,      // 20 detik
+    RETRY_DELAY         : 3 * 1000,       // jeda sebelum retry
+    BLOGGER_CONCURRENCY : 5,              // [5] max JSONP paralel ke Blogger
+    ERROR_MESSAGE       : '<p style="text-align:center;color:#888;padding:12px 0;">Gagal memuat konten. Silakan coba lagi nanti.</p>'
   };
+
+  // ============================================================
+  // [4] INJECT SKELETON STYLE SEKALI KE <HEAD>
+  // ============================================================
+  if (!document.getElementById('he-skeleton-style')) {
+    const s = document.createElement('style');
+    s.id = 'he-skeleton-style';
+    s.textContent = `
+      @keyframes he-skeleton {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .he-skel {
+        background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: he-skeleton 1.5s infinite;
+        border-radius: 4px;
+      }
+    `;
+    document.head.appendChild(s);
+  }
 
   // ============================================================
   // HELPER: Escape HTML
   // ============================================================
   function escapeHTML(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
 
   // ============================================================
-  // SKELETON LOADER HTML
+  // SKELETON LOADER — pakai class .he-skel, tanpa inline style duplikat
   // ============================================================
   function renderSkeleton() {
-    const skeletonHTML = `
-      <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
-        <div class="skeleton-img" style="aspect-ratio:16/9;width:-moz-available;width:-webkit-fill-available;height:auto;max-height:124px!important;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:4px;"></div>
-        <div class='dn' style="flex:1;">
-          <div class="skeleton-title" style="height:14px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:3px;width:80%;margin-bottom:8px;"></div>
-          <div class="skeleton-date" style="height:10px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-loading 1.5s infinite;border-radius:3px;width:40%;"></div>
+    const item = `
+      <li style="display:flex;gap:12px;margin-bottom:15px;align-items:center;">
+        <div class="he-skel" style="flex-shrink:0;width:70px;height:50px;"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="he-skel" style="height:14px;width:80%;"></div>
+          <div class="he-skel" style="height:10px;width:40%;"></div>
         </div>
-      </li>
-    `;
-
-    // Desktop: 4, Mobile: 2
+      </li>`;
     const count = window.innerWidth >= 768 ? 4 : 2;
-    const items = Array(count).fill(skeletonHTML).join('');
-
-    return `
-      <style>
-        @keyframes skeleton-loading {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      </style>
-      <ul style="list-style:none;padding:0;margin:0;">${items}</ul>
-    `;
+    return `<ul style="list-style:none;padding:0;margin:0;">${item.repeat(count)}</ul>`;
   }
 
   // ============================================================
   // HELPER: Render List
-  // ============================================================  
+  // ============================================================
   function renderList(items) {
     if (!items.length) return '<p>Tidak ada konten.</p>';
-    return '<ul style="list-style:none;padding:0;margin:0;">' +
-      items.map(item => `
-        <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
-          <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
-            <img src="${item.img}"
+    const lis = items.map(item => `
+      <li style="display:flex;gap:12px;margin-bottom:15px;align-items:center;">
+        <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
+          <img src="${item.img}"
                alt="${escapeHTML(item.title)}"
-               style="width:70px;height:50px;object-fit:cover;border-radius:4px;"
-               onerror="this.src='https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'"/>
-          </a>
-          <div style="flex:1;">
-            <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;">
-              <a href="${escapeHTML(item.link)}" target="_blank">
-                ${escapeHTML(item.title)}
-              </a>
-            </h3>
-            <small style="font-size:11px;">
-              <time datetime="${item.rawDate}">${item.date}</time>
-            </small>
-          </div>
-        </li>`).join('') +
-      '</ul>';
+               loading="lazy"
+               style="width:70px;height:50px;object-fit:cover;border-radius:4px;flex-shrink:0;"
+               onerror="this.src='https://placehold.co/70x50'"/>
+        </a>
+        <div style="flex:1;min-width:0;">
+          <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;margin:0;">
+            <a href="${escapeHTML(item.link)}" target="_blank">${escapeHTML(item.title)}</a>
+          </h3>
+          <small style="font-size:11px;">
+            <time datetime="${item.rawDate}">${item.date}</time>
+          </small>
+        </div>
+      </li>`).join('');
+    return `<ul style="list-style:none;padding:0;margin:0;">${lis}</ul>`;
   }
 
   // ============================================================
-  // CACHE HELPER
+  // [7][8] CACHE HELPER — prefix selektif + versi di key
   // ============================================================
-  function getCached(key) {
+  function mkKey(raw) {
+    return `${config.CACHE_PREFIX}${config.CACHE_VERSION}_${raw}`;
+  }
+
+  function getCached(raw) {
     try {
-      const item = localStorage.getItem(key);
+      const item = localStorage.getItem(mkKey(raw));
       if (!item) return null;
       const data = JSON.parse(item);
-      if (Date.now() - data.timestamp > config.CACHE_DURATION) {
-        localStorage.removeItem(key);
+      if (Date.now() - data.ts > config.CACHE_DURATION) {
+        localStorage.removeItem(mkKey(raw));
         return null;
       }
-      return data.value;
-    } catch {
-      return null;
-    }
+      return data.v;
+    } catch { return null; }
   }
 
-  function setCache(key, value) {
+  function setCache(raw, value) {
     try {
-      localStorage.setItem(key, JSON.stringify({
-        value: value,
-        timestamp: Date.now()
-      }));
+      localStorage.setItem(mkKey(raw), JSON.stringify({ v: value, ts: Date.now() }));
     } catch (e) {
       if (e.name === 'QuotaExceededError') {
-        localStorage.clear();
+        // [7] Hapus hanya entry milik kita, jangan ganggu script lain
+        Object.keys(localStorage)
+          .filter(k => k.startsWith(config.CACHE_PREFIX))
+          .forEach(k => localStorage.removeItem(k));
+        try {
+          localStorage.setItem(mkKey(raw), JSON.stringify({ v: value, ts: Date.now() }));
+        } catch {}
       }
     }
   }
 
   // ============================================================
-  // DNS PRECONNECT (jalankan sekali saat load)
+  // DNS PRECONNECT
   // ============================================================
   function addPreconnect(domains) {
-    const head = document.head;
     domains.forEach(domain => {
-      if (!document.querySelector(`link[href*="${domain}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preconnect';
-        link.href = `https://${domain}`;
-        link.crossOrigin = 'anonymous';
-        head.appendChild(link);
-
-        const dnsLink = document.createElement('link');
-        dnsLink.rel = 'dns-prefetch';
-        dnsLink.href = `https://${domain}`;
-        head.appendChild(dnsLink);
-      }
+      if (document.querySelector(`link[href*="${domain}"]`)) return;
+      const l = document.createElement('link');
+      l.rel = 'preconnect'; l.href = `https://${domain}`; l.crossOrigin = 'anonymous';
+      document.head.appendChild(l);
+      const d = document.createElement('link');
+      d.rel = 'dns-prefetch'; d.href = `https://${domain}`;
+      document.head.appendChild(d);
     });
   }
 
   // ============================================================
-  // LAZY LOAD — trigger on first scroll, fallback 3 detik
-  // Tidak perlu menunggu container masuk ke layar
+  // [2] LAZY LOAD — above-the-fold langsung, sisanya on scroll
   // ============================================================
+  let remainingLoaded = false;
+
+  function isInViewport(el) {
+    const r = el.getBoundingClientRect();
+    return r.top < window.innerHeight && r.bottom > 0;
+  }
+
+  function loadFeedContainer(container) {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    const loader = container.dataset.loader;
+    if (loader && window[loader]) {
+      window[loader](container);
+      delete container.dataset.loader;
+    }
+  }
+
   function loadAllFeeds() {
-    const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
-    document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return; // skip jika sudah dimuat
-      container.dataset.loaded = '1';
-
-      const loader = container.dataset.loader;
-
-      // Tampilkan skeleton segera
-      container.innerHTML = renderSkeleton();
-      container.setAttribute('aria-busy', 'true');
-
-      if (loader && window[loader]) {
-        window[loader](container);
-        delete container.dataset.loader;
-      }
-    });
+    if (remainingLoaded) return;
+    remainingLoaded = true;
+    document.querySelectorAll('.recent-wp,.recent-blg,.recent-wp-multi,.recent-blg-multi')
+      .forEach(loadFeedContainer);
   }
 
-  // Trigger sekali saat ada aktivitas scroll pertama
+  // Above-the-fold: langsung dimuat sebelum ada scroll
+  document.querySelectorAll('.recent-wp,.recent-blg,.recent-wp-multi,.recent-blg-multi')
+    .forEach(container => { if (isInViewport(container)) loadFeedContainer(container); });
+
+  // Sisanya: tunggu scroll pertama
   window.addEventListener('scroll', function onFirstScroll() {
     window.removeEventListener('scroll', onFirstScroll);
     loadAllFeeds();
   }, { passive: true });
 
-  // Fallback: tetap load setelah 3 detik jika user tidak scroll
+  // Fallback 3 detik jika tidak ada scroll
   setTimeout(loadAllFeeds, 3000);
 
   // ============================================================
-  // HELPER: Ekstrak thumbnail dari satu post WP
-  // Prioritas: _embedded (satu request) → batch media map → placeholder
+  // HELPER: Ekstrak thumbnail WP
   // ============================================================
   function extractWPThumbnail(post, mediaMap) {
-    // Prioritas 1: _embedded (paling reliable, tidak perlu request kedua)
     try {
-      const embedded = post._embedded?.['wp:featuredmedia']?.[0];
-      if (embedded) {
-        // Coba ukuran medium dulu, fallback ke full
-        return embedded.media_details?.sizes?.medium?.source_url
-            || embedded.media_details?.sizes?.thumbnail?.source_url
-            || embedded.source_url
-            || null;
+      const emb = post._embedded?.['wp:featuredmedia']?.[0];
+      if (emb) {
+        return emb.media_details?.sizes?.medium?.source_url
+            || emb.media_details?.sizes?.thumbnail?.source_url
+            || emb.source_url || null;
       }
-    } catch { /* lanjut ke fallback */ }
-
-    // Prioritas 2: batch media map (dari request terpisah)
-    if (post.featured_media && mediaMap[post.featured_media]) {
+    } catch {}
+    if (post.featured_media && mediaMap[post.featured_media])
       return mediaMap[post.featured_media];
-    }
-
     return null;
   }
 
   // ============================================================
-  // WORDPRESS OPTIMIZED FETCH
-  // - Timeout dari config.FETCH_TIMEOUT (20 detik)
-  // - Retry 1x otomatis jika timeout/network error
-  // - Tidak menulis error langsung ke container (caller yang handle)
-  //
-  // FIX v1.4: Ganti cache: 'force-cache' → 'no-cache'
-  // 'force-cache' menyebabkan browser mengabaikan artikel baru karena
-  // menggunakan HTTP cache lama bahkan setelah halaman di-refresh.
-  // 'no-cache' akan tetap memanfaatkan cache browser via 304 Not Modified
-  // jika konten tidak berubah, tapi selalu re-validasi ke server.
+  // [1][3] WORDPRESS FETCH
+  // [1] cache: no-cache — artikel baru muncul saat refresh
+  // [3] Thumbnail: batch 1 request per source (tanpa _embed di URL utama)
+  // [9] Pre-compute .ts untuk sort
   // ============================================================
-  async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
-    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
-    const cached = getCached(cacheKey);
+  async function fetchWPOptimized(source, catId, count, offset, attempt = 1) {
+    const key = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
+    const cached = getCached(key);
     if (cached) return cached;
 
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
             + `&orderby=date&order=desc`
-            + `&_embed=wp:featuredmedia`
-            + `&_fields=id,title,link,date,featured_media,_embedded,_links`;
+            + `&_fields=id,title,link,date,featured_media`;
     if (catId) url += `&categories=${catId}`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), config.FETCH_TIMEOUT);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), config.FETCH_TIMEOUT);
 
     try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        mode: 'cors',
-        cache: 'no-cache' // FIX: was 'force-cache' — caused stale articles after refresh
-      });
-      clearTimeout(timeout);
-
+      // [1] no-cache: selalu verifikasi ke server, browser pakai 304 jika tidak berubah
+      const res = await fetch(url, { signal: ctrl.signal, mode: 'cors', cache: 'no-cache' });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const posts = await res.json();
 
-      const missingEmbedIds = posts
-        .filter(p => p.featured_media && !p._embedded?.['wp:featuredmedia']?.[0])
-        .map(p => p.featured_media);
-
+      // [3] Satu batch request untuk semua thumbnail sekaligus
+      const mediaIds = [...new Set(posts.filter(p => p.featured_media).map(p => p.featured_media))];
       let mediaMap = {};
-      if (missingEmbedIds.length > 0) {
+      if (mediaIds.length) {
         try {
-          const uniqueIds = [...new Set(missingEmbedIds)];
-          const mediaUrl = `https://${source}/wp-json/wp/v2/media`
-                         + `?include=${uniqueIds.join(',')}`
-                         + `&_fields=id,source_url,media_details`;
-          const mediaRes = await fetch(mediaUrl, { cache: 'no-cache' }); // FIX: was 'force-cache'
-          const mediaData = await mediaRes.json();
-          mediaData.forEach(m => {
+          const mRes = await fetch(
+            `https://${source}/wp-json/wp/v2/media?include=${mediaIds.join(',')}&_fields=id,source_url,media_details`,
+            { cache: 'no-cache' }
+          );
+          (await mRes.json()).forEach(m => {
             mediaMap[m.id] = m.media_details?.sizes?.medium?.source_url
                           || m.media_details?.sizes?.thumbnail?.source_url
                           || m.source_url;
           });
-        } catch { /* lanjut tanpa thumbnail */ }
+        } catch {}
       }
 
-      const mapped = posts.map(post => ({
-        title   : post.title.rendered || post.title,
-        link    : post.link,
-        rawDate : post.date,
-        date    : new Date(post.date).toLocaleDateString('id-ID'),
+      const mapped = posts.map(p => ({
+        title   : p.title.rendered || p.title,
+        link    : p.link,
+        rawDate : p.date,
+        ts      : new Date(p.date).getTime(),  // [9]
+        date    : new Date(p.date).toLocaleDateString('id-ID'),
         source  : source,
-        img     : extractWPThumbnail(post, mediaMap) || 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
+        img     : extractWPThumbnail(p, mediaMap) || 'https://placehold.co/70x50'
       }));
 
-      setCache(cacheKey, mapped);
+      setCache(key, mapped);
       return mapped;
 
     } catch (err) {
-      clearTimeout(timeout);
-      // Retry 1x otomatis setelah RETRY_DELAY
+      clearTimeout(timer);
       if (attempt < 2) {
-        console.warn(`WP fetch gagal (${source}), retry dalam ${config.RETRY_DELAY / 1000}s…`);
+        console.warn(`WP retry (${source})…`);
         await new Promise(r => setTimeout(r, config.RETRY_DELAY));
-        return fetchWPOptimized(source, catId, count, offset, container, 2);
+        return fetchWPOptimized(source, catId, count, offset, 2);
       }
-      console.error(`WP fetch failed (${source}):`, err.message);
-      return []; // kembalikan array kosong, jangan tulis error ke container
+      console.error(`WP failed (${source}):`, err.message);
+      return [];
     }
   }
 
+  // ============================================================
+  // [6] fetchWPCategory — dengan AbortController + timeout
+  // ============================================================
   async function fetchWPCategory(source, categoryName) {
-    const cacheKey = `wp_cat_${source}_${categoryName}`;
-    const cached = getCached(cacheKey);
+    const key = `cat_${source}_${categoryName}`;
+    const cached = getCached(key);
     if (cached) return cached;
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), config.FETCH_TIMEOUT);
 
     try {
       const res = await fetch(
         `https://${source}/wp-json/wp/v2/categories?search=${encodeURIComponent(categoryName)}&per_page=5&_fields=id,slug,name`,
-        { cache: 'no-cache' } // FIX: was 'force-cache'
+        { signal: ctrl.signal, cache: 'no-cache' }
       );
+      clearTimeout(timer);
       const cats = await res.json();
       if (!cats.length) return null;
-
-      const bySlug = cats.find(c => c.slug === categoryName.toLowerCase());
-      const byName = cats.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-      const catId = (bySlug || byName || cats[0]).id;
-
-      setCache(cacheKey, catId);
+      const catId = (
+        cats.find(c => c.slug === categoryName.toLowerCase()) ||
+        cats.find(c => c.name.toLowerCase() === categoryName.toLowerCase()) ||
+        cats[0]
+      ).id;
+      setCache(key, catId);
       return catId;
     } catch {
+      clearTimeout(timer);
       return null;
     }
   }
 
   // ============================================================
-  // BLOGGER OPTIMIZED
-  // - Timeout JSONP 20 detik (script tag tidak punya AbortController,
-  //   pakai setTimeout untuk cleanup manual)
-  // - Retry 1x otomatis jika timeout/error
-  // - Tidak menulis error langsung ke container (caller yang handle)
+  // [5] BLOGGER FETCH — concurrency queue, max 5 paralel
+  // [9] Pre-compute .ts untuk sort
   // ============================================================
-  function loadBloggerOptimized(source, category, count, startIndex, callback, container, attempt = 1) {
-    const cacheKey = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
-    const cached = getCached(cacheKey);
+  const bloggerQueue = [];
+  let bloggerRunning = 0;
 
-    if (cached) {
-      callback(cached);
-      return;
+  function bloggerEnqueue(task) {
+    bloggerQueue.push(task);
+    bloggerDrain();
+  }
+
+  function bloggerDrain() {
+    while (bloggerRunning < config.BLOGGER_CONCURRENCY && bloggerQueue.length) {
+      bloggerRunning++;
+      bloggerQueue.shift()(() => { bloggerRunning--; bloggerDrain(); });
     }
+  }
 
-    const cbName = 'blgCb_' + Math.random().toString(36).slice(2);
+  function loadBloggerOptimized(source, category, count, startIndex, callback, attempt = 1) {
+    const key = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
+    const cached = getCached(key);
+    if (cached) { callback(cached); return; }
 
-    // Timeout manual untuk JSONP
-    const timer = setTimeout(() => {
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
+    bloggerEnqueue(done => {
+      const cbName = 'blgCb_' + Math.random().toString(36).slice(2);
 
-      if (attempt < 2) {
-        console.warn(`Blogger JSONP timeout (${source}), retry…`);
-        setTimeout(() => {
-          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
-        }, config.RETRY_DELAY);
-      } else {
-        console.error(`Blogger fetch failed (${source}): timeout`);
-        callback([]); // kembalikan kosong, jangan tulis error ke container
-      }
-    }, config.FETCH_TIMEOUT);
+      const timer = setTimeout(() => {
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        done();
+        if (attempt < 2) {
+          console.warn(`Blogger timeout (${source}), retry…`);
+          setTimeout(() => loadBloggerOptimized(source, category, count, startIndex, callback, 2), config.RETRY_DELAY);
+        } else {
+          console.error(`Blogger failed (${source}): timeout`);
+          callback([]);
+        }
+      }, config.FETCH_TIMEOUT);
 
-    window[cbName] = function (data) {
-      clearTimeout(timer);
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
+      window[cbName] = function (data) {
+        clearTimeout(timer);
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        done();
 
-      const entries = data.feed.entry || [];
-      const mapped = entries.map(entry => ({
-        title   : entry.title.$t,
-        link    : entry.link.find(l => l.rel === 'alternate').href,
-        rawDate : entry.published.$t,
-        date    : new Date(entry.published.$t).toLocaleDateString('id-ID'),
-        source  : source,
-        img     : entry.media$thumbnail
-                    ? entry.media$thumbnail.url.replace(/\/s\d+-c\//, '/s320-c/')
-                    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
-      }));
+        const entries = data.feed.entry || [];
+        const mapped = entries.map(e => ({
+          title   : e.title.$t,
+          link    : e.link.find(l => l.rel === 'alternate').href,
+          rawDate : e.published.$t,
+          ts      : new Date(e.published.$t).getTime(),  // [9]
+          date    : new Date(e.published.$t).toLocaleDateString('id-ID'),
+          source  : source,
+          img     : e.media$thumbnail
+                      ? e.media$thumbnail.url.replace(/\/s\d+-c\//, '/s320-c/')
+                      : 'https://placehold.co/70x50'
+        }));
 
-      setCache(cacheKey, mapped);
-      callback(mapped);
-    };
+        setCache(key, mapped);
+        callback(mapped);
+      };
 
-    const labelPath = category ? `/-/${encodeURIComponent(category)}/` : '/';
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&start-index=${startIndex}&callback=${cbName}`;
-    script.onerror = () => {
-      clearTimeout(timer);
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
-
-      if (attempt < 2) {
-        console.warn(`Blogger JSONP error (${source}), retry…`);
-        setTimeout(() => {
-          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
-        }, config.RETRY_DELAY);
-      } else {
-        console.error(`Blogger fetch failed (${source}): script error`);
-        callback([]); // kembalikan kosong, jangan tulis error ke container
-      }
-    };
-    document.body.appendChild(script);
+      const labelPath = category ? `/-/${encodeURIComponent(category)}/` : '/';
+      const script = document.createElement('script');
+      script.id = cbName;
+      script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&start-index=${startIndex}&callback=${cbName}`;
+      script.onerror = () => {
+        clearTimeout(timer);
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        done();
+        if (attempt < 2) {
+          console.warn(`Blogger error (${source}), retry…`);
+          setTimeout(() => loadBloggerOptimized(source, category, count, startIndex, callback, 2), config.RETRY_DELAY);
+        } else {
+          console.error(`Blogger failed (${source}): script error`);
+          callback([]);
+        }
+      };
+      document.body.appendChild(script);
+    });
   }
 
   // ============================================================
   // SINGLE WP
   // ============================================================
-  window.loadSingleWP = async function(container) {
+  window.loadSingleWP = async function (container) {
     const source = container.getAttribute('data-source');
     const count  = parseInt(container.getAttribute('data-items')) || 5;
     const start  = parseInt(container.getAttribute('data-start'))  || 1;
-    const offset = start - 1;
-
-    const posts = await fetchWPOptimized(source, null, count, offset, container);
-    if (posts.length) {
-      container.innerHTML = renderList(posts);
-    } else {
-      container.innerHTML = config.ERROR_MESSAGE;
-    }
+    const posts  = await fetchWPOptimized(source, null, count, start - 1);
+    container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
     container.removeAttribute('aria-busy');
   };
-
-  document.querySelectorAll('.recent-wp').forEach(container => {
-    container.dataset.loader = 'loadSingleWP';
-  });
+  document.querySelectorAll('.recent-wp').forEach(c => { c.dataset.loader = 'loadSingleWP'; });
 
   // ============================================================
   // SINGLE BLOGGER
   // ============================================================
-  window.loadSingleBlogger = function(container) {
-    const source     = container.getAttribute('data-source');
-    const count      = parseInt(container.getAttribute('data-items')) || 5;
-    const startIndex = parseInt(container.getAttribute('data-start'))  || 1;
-
-    loadBloggerOptimized(source, null, count, startIndex, posts => {
-      if (posts.length) {
-        container.innerHTML = renderList(posts);
-      } else {
-        container.innerHTML = config.ERROR_MESSAGE;
-      }
+  window.loadSingleBlogger = function (container) {
+    const source = container.getAttribute('data-source');
+    const count  = parseInt(container.getAttribute('data-items')) || 5;
+    const start  = parseInt(container.getAttribute('data-start'))  || 1;
+    loadBloggerOptimized(source, null, count, start, posts => {
+      container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
       container.removeAttribute('aria-busy');
-    }, container);
+    });
   };
-
-  document.querySelectorAll('.recent-blg').forEach(container => {
-    container.dataset.loader = 'loadSingleBlogger';
-  });
+  document.querySelectorAll('.recent-blg').forEach(c => { c.dataset.loader = 'loadSingleBlogger'; });
 
   // ============================================================
   // MULTI-SOURCE WP
-  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
-  // bukan per-source — karena tiap site punya artikel berbeda.
-  // Fetch selalu dari offset=0, ambil lebih banyak agar slice valid.
+  // [9] sort pakai .ts (pre-computed), bukan new Date() per compare
   // ============================================================
-  window.loadMultiWP = async function(container) {
+  window.loadMultiWP = async function (container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
-    const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category  = container.getAttribute('data-category') || '';
-    const total     = parseInt(container.getAttribute('data-items')) || 10;
-    const sort      = container.getAttribute('data-sort') || 'date';
-    const start     = parseInt(container.getAttribute('data-start')) || 1;
-    const globalOffset = start - 1; // 0-based, diterapkan setelah merge
-
-    // Fetch lebih banyak per-source agar setelah dipotong offset global
-    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
-    const fetchCount = total + globalOffset;
+    const sources      = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
+    const category     = container.getAttribute('data-category') || '';
+    const total        = parseInt(container.getAttribute('data-items')) || 10;
+    const sort         = container.getAttribute('data-sort') || 'date';
+    const start        = parseInt(container.getAttribute('data-start')) || 1;
+    const globalOffset = start - 1;
+    const fetchCount   = total + globalOffset;
 
     if (!sources.length) return;
-
     addPreconnect(sources);
 
-    let allPosts = [];
+    const results = await Promise.allSettled(sources.map(async source => {
+      const catId = category ? await fetchWPCategory(source, category) : null;
+      if (category && !catId) return [];
+      return fetchWPOptimized(source, catId, fetchCount, 0);
+    }));
 
-    const promises = sources.map(async (source) => {
-      let catId = null;
-      if (category) {
-        catId = await fetchWPCategory(source, category);
-        if (!catId) return [];
-      }
-      // offset=0: selalu mulai dari artikel pertama tiap source
-      return fetchWPOptimized(source, catId, fetchCount, 0, container);
-    });
+    let all = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+    if (sort === 'date') all.sort((a, b) => b.ts - a.ts);  // [9]
 
-    const results = await Promise.allSettled(promises);
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        allPosts = allPosts.concat(result.value);
-      }
-    });
-
-    if (sort === 'date') {
-      allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-    }
-
-    // Terapkan offset global: potong dari posisi start, ambil sejumlah total
-    const slicedPosts = allPosts.slice(globalOffset, globalOffset + total);
-    if (slicedPosts.length) {
-      container.innerHTML = renderList(slicedPosts);
-    } else {
-      // Semua source gagal atau tidak ada artikel sama sekali
-      container.innerHTML = config.ERROR_MESSAGE;
-    }
+    const sliced = all.slice(globalOffset, globalOffset + total);
+    container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
     container.removeAttribute('aria-busy');
   };
-
-  document.querySelectorAll('.recent-wp-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiWP';
-  });
+  document.querySelectorAll('.recent-wp-multi').forEach(c => { c.dataset.loader = 'loadMultiWP'; });
 
   // ============================================================
   // MULTI-SOURCE BLOGGER
-  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
-  // bukan start-index per-source — karena tiap blog punya artikel berbeda.
-  // Fetch selalu dari start-index=1, ambil lebih banyak agar slice valid.
+  // [5] concurrency via queue, [9] sort pakai .ts
   // ============================================================
-  window.loadMultiBlogger = function(container) {
+  window.loadMultiBlogger = function (container) {
     const sourceAttr = container.getAttribute('data-sources');
     if (!sourceAttr) return;
-    const sources       = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category      = container.getAttribute('data-category') || '';
-    const total         = parseInt(container.getAttribute('data-items')) || 10;
-    const sort          = container.getAttribute('data-sort') || 'date';
-    const start         = parseInt(container.getAttribute('data-start')) || 1;
-    const globalOffset  = start - 1; // 0-based, diterapkan setelah merge
-
-    // Fetch lebih banyak per-source agar setelah dipotong offset global
-    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
-    const fetchCount = total + globalOffset;
+    const sources      = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
+    const category     = container.getAttribute('data-category') || '';
+    const total        = parseInt(container.getAttribute('data-items')) || 10;
+    const sort         = container.getAttribute('data-sort') || 'date';
+    const start        = parseInt(container.getAttribute('data-start')) || 1;
+    const globalOffset = start - 1;
+    const fetchCount   = total + globalOffset;
 
     if (!sources.length) return;
-
     addPreconnect(sources);
 
-    let allEntries = [];
-    let completed  = 0;
+    let all = [], completed = 0;
 
     sources.forEach(source => {
-      // startIndex=1: selalu mulai dari artikel pertama tiap source
       loadBloggerOptimized(source, category, fetchCount, 1, entries => {
-        allEntries = allEntries.concat(entries);
+        all = all.concat(entries);
         completed++;
-
         if (completed === sources.length) {
-          if (sort === 'date') {
-            allEntries.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-          }
-          // Terapkan offset global: potong dari posisi start, ambil sejumlah total
-          const slicedEntries = allEntries.slice(globalOffset, globalOffset + total);
-          if (slicedEntries.length) {
-            container.innerHTML = renderList(slicedEntries);
-          } else {
-            // Semua source gagal atau tidak ada artikel sama sekali
-            container.innerHTML = config.ERROR_MESSAGE;
-          }
+          if (sort === 'date') all.sort((a, b) => b.ts - a.ts);  // [9]
+          const sliced = all.slice(globalOffset, globalOffset + total);
+          container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
           container.removeAttribute('aria-busy');
         }
-      }, container);
+      });
     });
   };
-
-  document.querySelectorAll('.recent-blg-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiBlogger';
-  });
+  document.querySelectorAll('.recent-blg-multi').forEach(c => { c.dataset.loader = 'loadMultiBlogger'; });
 
 });
 
 
-
-/**
- * CENTRALIZED BANNER WIDGET
- * Pasang script ini di semua website (20+ sites)
- * Banner akan auto-update dari central config
- * 
- * IMPORTANT: Script ini HANYA memproses <div id="banner-event">
- * Tidak akan interferensi dengan widget lain seperti .recent-wp-multi
- */
-
-(function() {
+// ============================================================
+// CENTRALIZED BANNER WIDGET
+// ============================================================
+(function () {
   'use strict';
 
-  // ============================================================
-  // CONFIGURATION
-  // ============================================================
-  const CONFIG_URL = 'https://yanuarzg.github.io/cc/he/banner-config.json';
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 menit cache
-  const BANNER_NAMESPACE = 'centralizedBanner'; // Unique namespace
+  const CONFIG_URL       = 'https://yanuarzg.github.io/cc/he/banner-config.json';
+  const CACHE_DURATION   = 5 * 60 * 1000;
+  const BANNER_NAMESPACE = 'centralizedBanner';
 
-  // ============================================================
-  // CACHE HELPER (Namespaced untuk avoid conflict)
-  // ============================================================
   function getCachedConfig() {
     try {
       const cached = localStorage.getItem(BANNER_NAMESPACE + '_config');
       if (!cached) return null;
-      
       const data = JSON.parse(cached);
       if (Date.now() - data.timestamp > CACHE_DURATION) {
         localStorage.removeItem(BANNER_NAMESPACE + '_config');
         return null;
       }
       return data.config;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
-  function setCachedConfig(config) {
+  function setCachedConfig(cfg) {
     try {
-      localStorage.setItem(BANNER_NAMESPACE + '_config', JSON.stringify({
-        config: config,
-        timestamp: Date.now()
-      }));
-    } catch (e) {
-      // Storage full or disabled
-    }
+      localStorage.setItem(BANNER_NAMESPACE + '_config',
+        JSON.stringify({ config: cfg, timestamp: Date.now() }));
+    } catch {}
   }
 
-  // ============================================================
-  // LOAD CONFIG
-  // ============================================================
   async function loadBannerConfig() {
     const container = document.getElementById('banner-event');
     if (!container) return;
-
-    let config = getCachedConfig();
-    
-    if (!config) {
+    let cfg = getCachedConfig();
+    if (!cfg) {
       try {
-        const response = await fetch(CONFIG_URL + '?v=' + Date.now(), {
-          cache: 'no-cache'
-        });
-        config = await response.json();
-        setCachedConfig(config);
-      } catch (err) {
-        console.error('Failed to load banner config:', err);
-        return;
-      }
+        const res = await fetch(CONFIG_URL + '?v=' + Date.now(), { cache: 'no-cache' });
+        cfg = await res.json();
+        setCachedConfig(cfg);
+      } catch (err) { console.error('Banner config failed:', err); return; }
     }
-
-    renderBanner(container, config);
+    renderBanner(container, cfg);
   }
 
-  // ============================================================
-  // RENDER BANNER
-  // ============================================================
-  function renderBanner(container, config) {
+  function renderBanner(container, cfg) {
     const currentHost = window.location.hostname;
-    if (config.display.showOnSites && config.display.showOnSites.length > 0) {
-      const shouldShow = config.display.showOnSites.some(site => 
-        currentHost.includes(site.trim())
-      );
-      if (!shouldShow) {
+    if (cfg.display.showOnSites?.length) {
+      if (!cfg.display.showOnSites.some(s => currentHost.includes(s.trim()))) {
         container.style.display = 'none';
         return;
       }
     }
 
-    let html = `
-      <div class="centralized-banner" style="
-        width: -moz-available;
-        width: -webkit-fill-available;
-        height: fit-content;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        background-image: url('${config.background.image}');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        display: flex!important;
-        position: relative;
-        gap: 1rem;
-        margin-block: 2rem;
-      ">
-    `;
+    let html = `<div class="centralized-banner" style="
+      width:-moz-available;width:-webkit-fill-available;height:fit-content;
+      border-radius:0.5rem;overflow:hidden;
+      background-image:url('${cfg.background.image}');
+      background-size:cover;background-position:center;background-repeat:no-repeat;
+      display:flex!important;position:relative;gap:1rem;margin-block:2rem;">`;
 
-    if (config.event.image) {
-      html += `
-        <img 
-          src="${config.event.image}" 
-          alt="Event Banner"
-        >
-      `;
+    if (cfg.event.image) html += `<img src="${cfg.event.image}" alt="Event Banner">`;
+
+    if (cfg.slider?.enabled && cfg.slider.subdomain) {
+      html += `<div id="banner-slider" style="flex:1;min-width:0;padding:8px 0;">
+        <div id="slider-track" style="display:flex;gap:10px;overflow-x:auto;
+          scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+          scrollbar-width:none;-ms-overflow-style:none;padding:4px 4px 8px 4px;"></div>
+      </div>`;
     }
-
-    if (config.slider && config.slider.enabled && config.slider.subdomain) {
-      html += `
-        <div id="banner-slider" style="flex: 1; min-width: 0; padding: 8px 0;">
-          <div id="slider-track" style="
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding: 4px 4px 8px 4px;
-          "></div>
-        </div>
-      `;
-    }
-
     html += '</div>';
 
     if (!document.getElementById('banner-scroll-style')) {
-      const style = document.createElement('style');
-      style.id = 'banner-scroll-style';
-      style.textContent = '#slider-track::-webkit-scrollbar { display: none; }';
-      document.head.appendChild(style);
+      const s = document.createElement('style');
+      s.id = 'banner-scroll-style';
+      s.textContent = '#slider-track::-webkit-scrollbar{display:none}';
+      document.head.appendChild(s);
     }
 
     container.innerHTML = html;
-
-    if (config.slider && config.slider.enabled && config.slider.subdomain) {
-      initSlider(config.slider);
-    }
+    if (cfg.slider?.enabled && cfg.slider.subdomain) initSlider(cfg.slider);
   }
 
-  // ============================================================
-  // POSITION HELPER
-  // ============================================================
-  function getPositionStyles(position) {
-    let horizontal = '';
-    let vertical = '';
-
-    switch (position.horizontal) {
-      case 'left':   horizontal = 'left: 20px;'; break;
-      case 'right':  horizontal = 'right: 20px;'; break;
-      case 'center': horizontal = 'left: 50%; transform: translateX(-50%);'; break;
-    }
-
-    switch (position.vertical) {
-      case 'top':    vertical = 'top: 20px;'; break;
-      case 'bottom': vertical = 'bottom: 20px;'; break;
-      case 'center':
-        vertical = 'top: 50%; transform: translateY(-50%);';
-        if (position.horizontal === 'center') {
-          vertical = 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
-        }
-        break;
-    }
-
-    return horizontal + vertical;
-  }
-
-  // ============================================================
-  // SLIDER LOGIC — CSS scroll-snap, no JS navigation
-  // ============================================================
   function initSlider(sliderConfig) {
     if (!sliderConfig.subdomain || !sliderConfig.filterType || !sliderConfig.filterValue) {
-      console.warn('Slider config incomplete - subdomain, filterType, and filterValue required');
+      console.warn('Slider config incomplete');
       return;
     }
 
     function renderSlide(articles) {
       const track = document.getElementById('slider-track');
-      if (!track || articles.length === 0) return;
-
+      if (!track || !articles.length) return;
       track.innerHTML = '';
-
       articles.forEach(article => {
         const card = document.createElement('a');
-        card.href = article.link;
-        card.target = '_blank';
-        card.rel = 'noopener';
-        card.style.cssText = `
-          flex: 0 0 calc(33.333% - 7px);
-          min-width: 0;
-          scroll-snap-align: start;
-          display: block;
-          text-decoration: none;
-          color: white;
-          background: rgba(255,255,255,0.1);
-          border-radius: 8px;
-          overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.15);
-        `;
+        card.href = article.link; card.target = '_blank'; card.rel = 'noopener';
+        card.style.cssText = `flex:0 0 calc(33.333% - 7px);min-width:0;scroll-snap-align:start;
+          display:block;text-decoration:none;color:white;background:rgba(255,255,255,0.1);
+          border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);`;
         card.innerHTML = `
           <div style="width:100%;aspect-ratio:16/10;overflow:hidden;background:rgba(0,0,0,0.3);">
-            <img src="${article.thumbnail || ''}" alt=""
+            <img src="${article.thumbnail || ''}" alt="" loading="lazy"
               style="width:100%;height:100%;object-fit:cover;display:block;"
               onerror="this.style.display='none'"/>
           </div>
           <div style="padding:8px 10px 10px;">
             <p style="margin:0 0 6px;font-size:12px;font-weight:600;line-height:1.4;
               display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-              ${article.title}
-            </p>
+              ${article.title}</p>
             <div style="display:flex;gap:8px;align-items:center;">
               <span style="font-size:10px;opacity:0.7;">${article.source}</span>
               <span style="font-size:10px;opacity:0.5;">${article.date}</span>
             </div>
-          </div>
-        `;
+          </div>`;
         track.appendChild(card);
       });
     }
 
-    if (sliderConfig.type === 'wordpress') {
-      loadWordPressArticles(sliderConfig).then(data => {
-        if (data.length > 0) {
-          renderSlide(data);
-        } else {
-          const track = document.getElementById('slider-track');
-          if (track) track.innerHTML = '<div style="font-size:12px;opacity:0.7;padding:8px;">Tidak ada artikel</div>';
-        }
-      });
-    } else if (sliderConfig.type === 'blogger') {
-      loadBloggerArticles(sliderConfig).then(data => {
-        if (data.length > 0) {
-          renderSlide(data);
-        } else {
-          const track = document.getElementById('slider-track');
-          if (track) track.innerHTML = '<div style="font-size:12px;opacity:0.7;padding:8px;">Tidak ada artikel</div>';
-        }
-      });
-    }
+    const loader = sliderConfig.type === 'wordpress'
+      ? loadWordPressArticles(sliderConfig)
+      : loadBloggerArticles(sliderConfig);
+
+    loader.then(data => {
+      if (data.length) {
+        renderSlide(data);
+      } else {
+        const track = document.getElementById('slider-track');
+        if (track) track.innerHTML = '<div style="font-size:12px;opacity:0.7;padding:8px;">Tidak ada artikel</div>';
+      }
+    });
   }
 
-  // ============================================================
-  // WORDPRESS LOADER (Banner)
-  // ============================================================
-  async function loadWordPressArticles(config) {
+  async function loadWordPressArticles(cfg) {
     try {
-      let url = `https://${config.subdomain}/wp-json/wp/v2/posts?per_page=${config.count}`;
-  
-      if (config.filterType === 'category') {
-        const catRes = await fetch(`https://${config.subdomain}/wp-json/wp/v2/categories?search=${encodeURIComponent(config.filterValue)}&per_page=1`);
-        const cats = await catRes.json();
-        if (cats.length > 0) url += `&categories=${cats[0].id}`;
-      } else if (config.filterType === 'tags') {
-        const tagRes = await fetch(`https://${config.subdomain}/wp-json/wp/v2/tags?search=${encodeURIComponent(config.filterValue)}&per_page=1`);
-        const tags = await tagRes.json();
-        if (tags.length > 0) url += `&tags=${tags[0].id}`;
+      let url = `https://${cfg.subdomain}/wp-json/wp/v2/posts?per_page=${cfg.count}`;
+      if (cfg.filterType === 'category') {
+        const cats = await fetch(`https://${cfg.subdomain}/wp-json/wp/v2/categories?search=${encodeURIComponent(cfg.filterValue)}&per_page=1`).then(r => r.json());
+        if (cats.length) url += `&categories=${cats[0].id}`;
+      } else if (cfg.filterType === 'tags') {
+        const tags = await fetch(`https://${cfg.subdomain}/wp-json/wp/v2/tags?search=${encodeURIComponent(cfg.filterValue)}&per_page=1`).then(r => r.json());
+        if (tags.length) url += `&tags=${tags[0].id}`;
       }
-  
-      const res = await fetch(url);
-      const posts = await res.json();
-  
-      const results = await Promise.all(posts.map(async post => {
+      const posts = await fetch(url).then(r => r.json());
+      return await Promise.all(posts.map(async post => {
         let thumbnail = '';
-  
-        if (post.featured_media && post.featured_media > 0) {
+        if (post.featured_media > 0) {
           try {
-            const mediaRes = await fetch(
-              `https://${config.subdomain}/wp-json/wp/v2/media/${post.featured_media}?_fields=source_url,media_details`
-            );
-            const media = await mediaRes.json();
-            thumbnail =
-              media?.media_details?.sizes?.medium?.source_url ||
-              media?.media_details?.sizes?.thumbnail?.source_url ||
-              media?.source_url ||
-              '';
-          } catch(e) {}
+            const media = await fetch(
+              `https://${cfg.subdomain}/wp-json/wp/v2/media/${post.featured_media}?_fields=source_url,media_details`
+            ).then(r => r.json());
+            thumbnail = media?.media_details?.sizes?.medium?.source_url
+                     || media?.media_details?.sizes?.thumbnail?.source_url
+                     || media?.source_url || '';
+          } catch {}
         }
-  
         return {
-          title: post.title.rendered,
-          link: post.link,
-          date: new Date(post.date).toLocaleDateString('id-ID'),
-          source: config.subdomain,
-          thumbnail: thumbnail
+          title     : post.title.rendered,
+          link      : post.link,
+          date      : new Date(post.date).toLocaleDateString('id-ID'),
+          source    : cfg.subdomain,
+          thumbnail
         };
       }));
-  
-      return results;
-  
-    } catch (err) {
-      console.warn(`Failed to load from ${config.subdomain}:`, err);
-      return [];
-    }
+    } catch (err) { console.warn(`Banner WP failed (${cfg.subdomain}):`, err); return []; }
   }
 
-  // ============================================================
-  // BLOGGER LOADER (Banner)
-  // ============================================================
-  function loadBloggerArticles(config) {
-    return new Promise((resolve) => {
+  function loadBloggerArticles(cfg) {
+    return new Promise(resolve => {
       const cbName = BANNER_NAMESPACE + '_blg_' + Math.random().toString(36).slice(2);
-
-      window[cbName] = function(data) {
+      window[cbName] = function (data) {
         document.getElementById(cbName)?.remove();
         delete window[cbName];
-
-        const entries = data.feed.entry || [];
-        resolve(entries.map(entry => {
-          let thumbnail = '';
-          try {
-            thumbnail = entry.media$thumbnail?.url?.replace('/s72-c/', '/s400-c/') || '';
-          } catch(e) {}
-
-          return {
-            title: entry.title.$t,
-            link: entry.link.find(l => l.rel === 'alternate').href,
-            date: new Date(entry.published.$t).toLocaleDateString('id-ID'),
-            source: config.subdomain,
-            thumbnail: thumbnail
-          };
-        }));
+        resolve((data.feed.entry || []).map(entry => ({
+          title     : entry.title.$t,
+          link      : entry.link.find(l => l.rel === 'alternate').href,
+          date      : new Date(entry.published.$t).toLocaleDateString('id-ID'),
+          source    : cfg.subdomain,
+          thumbnail : entry.media$thumbnail?.url?.replace('/s72-c/', '/s400-c/') || ''
+        })));
       };
-
-      const labelPath = config.filterValue ? `/-/${encodeURIComponent(config.filterValue)}/` : '/';
+      const labelPath = cfg.filterValue ? `/-/${encodeURIComponent(cfg.filterValue)}/` : '/';
       const script = document.createElement('script');
       script.id = cbName;
-      script.src = `https://${config.subdomain}/feeds/posts/default${labelPath}?alt=json&max-results=${config.count}&callback=${cbName}`;
+      script.src = `https://${cfg.subdomain}/feeds/posts/default${labelPath}?alt=json&max-results=${cfg.count}&callback=${cbName}`;
       script.onerror = () => {
         document.getElementById(cbName)?.remove();
         delete window[cbName];
@@ -912,28 +696,23 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ============================================================
-  // INITIALIZE ON PAGE LOAD
-  // ============================================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadBannerConfig);
   } else {
     loadBannerConfig();
   }
-
 })();
 
 
-
-
-/* Scroll Control (Passive for Performance) */
-(function() {
-  let lastS = 0;
-  let timeout;
+// ============================================================
+// SCROLL CONTROL
+// ============================================================
+(function () {
+  let lastS = 0, timeout;
   window.addEventListener('scroll', () => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      let currS = window.pageYOffset;
+      const currS = window.pageYOffset;
       if (Math.abs(currS - lastS) < 50) return;
       document.body.classList.toggle('dw', currS > lastS && currS > 100);
       document.body.classList.toggle('up', currS < lastS);
@@ -942,75 +721,65 @@ document.addEventListener("DOMContentLoaded", function () {
   }, { passive: true });
 })();
 
-var d = new Date(); var n = d.getFullYear(); var yearElement = document.getElementById('getYear'); if (yearElement) { yearElement.innerHTML = n; }
+// YEAR
+var yearElement = document.getElementById('getYear');
+if (yearElement) yearElement.innerHTML = new Date().getFullYear();
 
-document.addEventListener('DOMContentLoaded', function() {
-    const target = document.querySelector('#redaksi');
-    const elementToMove = document.querySelector('.lh-normal');
+// DOM UTILITIES
+document.addEventListener('DOMContentLoaded', function () {
+  // Pindah .lh-normal ke #redaksi
+  const target = document.querySelector('#redaksi');
+  const elementToMove = document.querySelector('.lh-normal');
+  if (target && elementToMove) target.appendChild(elementToMove);
 
-    if (target && elementToMove) {
-        target.appendChild(elementToMove);
-    }
-});
+  // Footer menu
+  const footerContainer = document.querySelector('.he-footer-menu');
+  if (footerContainer) {
+    footerContainer.innerHTML = `
+      <ul id="menu-main" class="menu">
+        <li class="menu-item"><a href="https://harianexpress.com/news/">News</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/global/">Global</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/nasional/">Nasional</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/daerah/">Daerah</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/politik/">Politik</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/pemilu/">Pemilu</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/kementrian/">Kementrian</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/bumn/">BUMN</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/korporasi/">Korporasi</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/selebriti/">Selebriti</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/surat-pembaca/">Surat Pembaca</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/kolom/">Kolom</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/netizen/">Netizen</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/cek-fakta/">Cek Fakta</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/hankam/">Hankam</a></li>
+        <li class="menu-item"><a href="https://humaniora.harianexpress.com/">Humaniora</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/hukum/">Hukum</a></li>
+        <li class="menu-item"><a href="https://tekno.harianexpress.com">Tekno</a></li>
+        <li class="menu-item"><a href="https://wanita.harianexpress.com/">Wanita</a></li>
+        <li class="menu-item"><a href="https://properti.harianexpress.com/">Properti</a></li>
+        <li class="menu-item"><a href="https://travel.harianexpress.com/">Travel</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/komunitas/">Komunitas</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/event/">Event</a></li>
+        <li class="menu-item"><a href="https://otomotif.harianexpress.com/">Otomotif</a></li>
+        <li class="menu-item"><a href="https://bola.harianexpress.com/">Bola</a></li>
+        <li class="menu-item"><a href="https://olahraga.harianexpress.com/">Olahraga</a></li>
+        <li class="menu-item"><a href="https://umkm.harianexpress.com/">UMKM</a></li>
+        <li class="menu-item"><a href="https://edu.harianexpress.com/">Edukasi</a></li>
+        <li class="menu-item"><a href="https://finance.harianexpress.com/">Finance</a></li>
+        <li class="menu-item"><a href="https://foto.harianexpress.com/">Foto</a></li>
+        <li class="menu-item"><a href="https://video.harianexpress.com/">Video</a></li>
+        <li class="menu-item"><a href="https://health.harianexpress.com/">Health</a></li>
+        <li class="menu-item"><a href="https://lifestyle.harianexpress.com/">Lifestyle</a></li>
+        <li class="menu-item"><a href="https://nature.harianexpress.com/">Nature</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/indeks/?khusus=headline">Headline</a></li>
+        <li class="menu-item"><a href="https://harianexpress.com/trending/">Trending</a></li>
+      </ul>`;
+  }
 
-document.addEventListener("DOMContentLoaded", function() {
-    const footerContainer = document.querySelector('.he-footer-menu');
-
-    if (footerContainer) {
-        const menuHTML = `
-            <ul id="menu-main" class="menu">
-                <li class="menu-item"><a href="https://harianexpress.com/news/">News</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/global/">Global</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/nasional/">Nasional</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/daerah/">Daerah</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/politik/">Politik</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/pemilu/">Pemilu</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/kementrian/">Kementrian</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/bumn/">BUMN</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/korporasi/">Korporasi</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/selebriti/">Selebriti</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/surat-pembaca/">Surat Pembaca</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/kolom/">Kolom</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/netizen/">Netizen</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/cek-fakta/">Cek Fakta</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/hankam/">Hankam</a></li>
-                <li class="menu-item"><a href="https://humaniora.harianexpress.com/">Humaniora</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/hukum/">Hukum</a></li>
-                <li class="menu-item"><a href="https://tekno.harianexpress.com">Tekno</a></li>
-                <li class="menu-item"><a href="https://wanita.harianexpress.com/">Wanita</a></li>
-                <li class="menu-item"><a href="https://properti.harianexpress.com/">Properti</a></li>
-                <li class="menu-item"><a href="https://travel.harianexpress.com/">Travel</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/komunitas/">Komunitas</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/event/">Event</a></li>
-                <li class="menu-item"><a href="https://otomotif.harianexpress.com/">Otomotif</a></li>
-                <li class="menu-item"><a href="https://bola.harianexpress.com/">Bola</a></li>
-                <li class="menu-item"><a href="https://olahraga.harianexpress.com/">Olahraga</a></li>
-                <li class="menu-item"><a href="https://umkm.harianexpress.com/">UMKM</a></li>
-                <li class="menu-item"><a href="https://edu.harianexpress.com/">Edukasi</a></li>
-                <li class="menu-item"><a href="https://finance.harianexpress.com/">Finance</a></li>
-                <li class="menu-item"><a href="https://foto.harianexpress.com/">Foto</a></li>
-                <li class="menu-item"><a href="https://video.harianexpress.com/">Video</a></li>
-                <li class="menu-item"><a href="https://health.harianexpress.com/">Health</a></li>
-                <li class="menu-item"><a href="https://lifestyle.harianexpress.com/">Lifestyle</a></li>
-                <li class="menu-item"><a href="https://nature.harianexpress.com/">Nature</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/indeks/?khusus=headline">Headline</a></li>
-                <li class="menu-item"><a href="https://harianexpress.com/trending/">Trending</a></li>
-            </ul>`;
-        
-        footerContainer.innerHTML = menuHTML;
-    }
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    const telegramIcon = document.querySelector('footer #HTML3 .telegram');
-
-    if (telegramIcon) {
-        const parentLink = telegramIcon.closest('a');
-        
-        if (parentLink) {
-            parentLink.setAttribute('href', 'https://www.linkedin.com/in/harianexpress');
-        }
-
-        telegramIcon.outerHTML = '<svg class="linkedin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6.94 5a2 2 0 1 1-4-.002a2 2 0 0 1 4 .002M7 8.48H3V21h4zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91z"/></svg>';
-    }
+  // LinkedIn icon
+  const telegramIcon = document.querySelector('footer #HTML3 .telegram');
+  if (telegramIcon) {
+    telegramIcon.closest('a')?.setAttribute('href', 'https://www.linkedin.com/in/harianexpress');
+    telegramIcon.outerHTML = '<svg class="linkedin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6.94 5a2 2 0 1 1-4-.002a2 2 0 0 1 4 .002M7 8.48H3V21h4zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91z"/></svg>';
+  }
 });
