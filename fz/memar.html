@@ -1,0 +1,960 @@
+<style>
+  aside {display:none!important;}
+  .inpage main {
+    width: -moz-available;
+    width: -webkit-fill-available;
+    max-width: -moz-available;
+    max-width: -webkit-fill-available;
+  }
+  .inpage h1.post-title {
+    text-align: center; margin-top:0;
+  }
+
+  .member-area-wrap {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 16px;
+  }
+
+  .ma-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 48px 16px;
+    color: var(--bg-shade);
+    font-size: 0.9rem;
+  }
+
+  .ma-loading svg {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .member-area-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .card-profile {
+    background: var(--bg-color);
+    border: 1px solid var(--skl-soft);
+    border-radius: 16px;
+    padding: 28px 20px 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    text-align: center;
+    justify-items: center;
+    position: relative;
+  }
+
+  .card-profile .cp-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f0f0f0;
+    margin: 0 auto 14px;
+    display: block;
+  }
+
+  .card-profile .cp-avatar-placeholder {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--bg-shade);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+  }
+
+  .card-profile .cp-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 4px;
+  }
+
+  .card-profile .cp-email {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
+
+  .card-profile .cp-uid {
+    font-size: 0.7rem;
+    color: var(--text-color);
+    word-break: break-all;
+    margin-bottom: 20px;
+  }
+
+  .card-profile .cp-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-profile .btn-edit-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: var(--bg-shade);
+    border: 1px solid var(--skl-soft);
+    border-radius: 4rem;
+    padding: 0 9px;
+    font-size: 0.82rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+
+  .card-profile .btn-edit-profile:hover {
+    background: var(--bg-shade);
+  }
+
+  .card-profile .btn-logout-ma {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    background: transparent;
+    border: 1px solid var(--skl-soft);
+    border-radius: 4rem;
+    padding: 9px;
+    font-size: 0.82rem;
+    color: #c0392b;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  .card-profile .btn-logout-ma:hover {
+    background: #c0392b;
+    color: white;
+  }  
+
+  .card-products {
+    background: var(--bg-color);
+    border: 1px solid var(--skl-soft);
+    border-radius: 16px;
+    padding: 24px 22px;
+  }
+  .card-products h2 {
+    font-size: 1rem!important; font-weight: 700;
+    margin: 0 0 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .product-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .web-product-card {
+    border: 1px solid var(--skl-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+  }
+  .web-product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .wpc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-shade);
+    border-bottom: 1px solid var(--skl-soft);
+  }
+  .wpc-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: #e8f0fe; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wpc-icon svg { width: 20px; height: 20px; }
+  .wpc-title { flex: 1; overflow: hidden; }
+  .wpc-name {
+    font-size: 0.92rem; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .wpc-url {
+    font-size: 0.75rem; color: #4a90e2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none; display: block; margin-top: 2px;
+  }
+  .wpc-url:hover { text-decoration: underline; }
+
+  .wpc-status {
+    font-size: 0.71rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; flex-shrink: 0;
+  }
+  .wpc-status.active   { background: #e8f5e9; color: #2e7d32; }
+  .wpc-status.expired  { background: #fdecea; color: #c0392b; }
+  .wpc-status.expiring { background: #fff8e1; color: #e65100; }
+
+  .wpc-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    flex-wrap: wrap;
+  }
+
+  .card-pt {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--skl-soft);
+    padding-bottom: 1rem;
+  }
+
+  .card-pt h2 {
+    font-size: 1rem!important; font-weight: 700;
+    margin: 0 0 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .pt-item {
+    border: 1px solid var(--skl-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    transition: box-shadow 0.15s;
+  }
+  .pt-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .pt-item-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-shade);
+    border-bottom: 1px solid var(--skl-soft);
+  }
+
+  .pt-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: #fef3e2; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .pt-name {
+    font-size: 0.92rem; font-weight: 700; flex: 1;
+  }
+
+  .pt-badge {
+    font-size: 0.71rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .pt-badge.active   { background: #e8f5e9; color: #2e7d32; }
+  .pt-badge.progress { background: #fff8e1; color: #e65100; }
+
+  .pt-progress {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pt-step {
+    display: flex;
+    align-items: center;  gap: 12px;
+    position: relative; padding-block-end: 0.5rem;
+  }
+
+  .pt-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    width: 2px;
+    height: calc(100% - 4px);
+    background: #e0e0e0;
+  }
+
+  .pt-step.done::after  { background: #4caf50; }
+  .pt-step.current::after { background: #e0e0e0; }
+
+  .pt-step-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 700;
+    border: 2px solid #e0e0e0;
+    background: var(--bg-color);
+    z-index: 1;
+  }
+  .pt-step.done .pt-step-dot {
+    background: #4caf50; border-color: #4caf50; color: var(--bg-color);
+  }
+  .pt-step.current .pt-step-dot {
+    background: #4caf50; border-color: #4caf50; color: var(--bg-color);
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(76, 175, 80,0); }
+  }
+
+  .pt-step-label {
+    padding: 2px 0 0;
+    font-size: 0.82rem;
+    color: #bbb;
+    line-height: 1.4;
+  }
+  .pt-step.done .pt-step-label    { color: #555; font-weight: 500; }
+  .pt-step.current .pt-step-label { color: #4caf50; font-weight: 700; }
+
+  .pt-collapsed-wrap {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+  }
+  .pt-collapsed-wrap.open {
+    max-height: 400px;
+    opacity: 1;
+  }
+
+  .pt-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border-radius: 20px;
+    padding: 4px 0;
+    font-size: 0.75rem;
+    color: #999;
+    cursor: pointer;
+    margin: 0 0 10px 0;
+    width: fit-content;
+  }
+  .pt-toggle-btn svg {
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .pt-toggle-btn.open svg {
+    transform: rotate(180deg);
+  }
+
+  .pt-footer {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 10px 16px;
+    border-top: 1px solid var(--skl-soft);
+    font-size: 0.75rem; color: #aaa;
+  }
+  .pt-footer span { color: #555; font-weight: 600; flex-grow: 1; }
+
+  .btn-wa-pt {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #25d366; color: var(--bg-color); border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: background 0.15s, transform 0.1s; flex-shrink: 0;
+  }
+  .btn-wa-pt:hover { background: #1ebe5d; transform: translateY(-1px); }
+
+  .wpc-countdown { display: flex; gap: 8px; flex: 1; min-width: 290px; }
+  .countdown-block {
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--bg-shade); border-radius: 8px; padding: 8px 10px; min-width: 48px;
+  }
+  .countdown-block .cd-num {
+    font-size: 1.2rem; font-weight: 800; line-height: 1;
+  }
+  .countdown-block .cd-label {
+    font-size: 0.62rem; color: #999; margin-top: 3px;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .countdown-block.urgent .cd-num  { color: #c0392b; }
+  .countdown-block.warning .cd-num { color: #e65100; }
+
+  .wpc-expire-date { font-size: 0.75rem; color: #aaa; white-space: nowrap; }
+  .wpc-expire-date span { color: #555; font-weight: 600; }
+
+  .btn-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    background: #25d366;
+    color: var(--bg-color);
+    border: none;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .btn-wa:hover { background: #1ebe5d; transform: translateY(-1px); }
+
+  .products-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 16px;
+    color: #ccc;
+    gap: 10px;
+  }
+
+  .products-empty p {
+    font-size: 0.85rem;
+    margin: 0;
+    text-align: center;
+  }
+
+  .ma-not-logged-in {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 56px 16px;
+    gap: 14px;
+    color: #888;
+    text-align: center;
+  }
+
+  .ma-not-logged-in p {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .ma-not-logged-in .btn-google-login {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a1a1a;
+    color: lightgray;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .ma-not-logged-in .btn-google-login:hover {
+    background: #333;
+  }
+
+  .ma-notif-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .ma-notif {
+    display: flex; margin: 0;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none; font-size: 0.85rem;
+    line-height: 1.5;
+    animation: notifSlideIn 0.3s ease;
+  }
+
+  @keyframes notifSlideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .ma-notif.danger {
+    background: #fdecea;
+    border-color: #c0392b;
+    color: #922b21;
+  }
+
+  .ma-notif.warning {
+    background: #fff8e1;
+    border-color: #e65100;
+    color: #a04000;
+  }
+
+  .ma-notif.info {
+    background: #e8f4fd;
+    border-color: #2980b9;
+    color: #1a5276;
+  }
+
+  .ma-notif-body strong {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .ma-notif-body a {
+    font-weight: 600;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .ma-toast-item.danger  { background: #c0392b; }
+  .ma-toast-item.warning { background: #e65100; }
+
+  .ma-toast-item-body { flex: 1; }
+  .ma-toast-item-body strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+  .ma-toast-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .ma-toast-close:hover { color: #fff; }
+
+  @media only screen and (max-width: 768px) {
+    .member-area-wrap {
+      padding: 0;
+    }
+    .member-area-grid {
+      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+    }
+    .member-area-grid > div {
+      width: -moz-available;
+      width: -webkit-fill-available;
+    }
+    .card-products {
+      border: none;
+      border-radius: 0;
+      padding: 0;
+    }
+  }
+</style>
+
+<div class="member-area-wrap">
+  <div class="ma-loading" id="ma-loading" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
+    Memuat data member…
+  </div>
+  <div class="ma-not-logged-in" id="ma-not-logged-in">
+    <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <p>Kamu belum login.<br>Silakan login untuk mengakses member area.</p>
+    <button class="btn-google-login" id="ma-btn-login">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      Login dengan Google
+    </button>
+  </div>
+  <div class="ma-notif-wrap" id="ma-notif-wrap" style="display:none;"></div>
+  <div class="member-area-grid" id="ma-content" style="display:none;">
+    <div class="card-profile">
+      <div id="ma-avatar-wrap"></div>
+      <div class="cp-name mt-1"  id="ma-name">—</div>
+      <div class="cp-email" id="ma-email">—</div>
+      <div class="cp-uid"   id="ma-uid">—</div>
+      <div class="cp-actions">
+        <a href="https://myaccount.google.com/personal-info" target="_blank" rel="noopener" class="btn-edit-profile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 48 48">
+            <path fill="#ffc107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917"/>
+            <path fill="#ff3d00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691"/>
+            <path fill="#4caf50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.9 11.9 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44"/>
+            <path fill="#1976d2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917"/>
+          </svg>
+          Edit Profil Google
+        </a>
+        <button class="btn-logout-ma" id="ma-btn-logout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Logout
+        </button>
+      </div>
+    </div>
+    <div class="card-products">
+      <div class="card-pt" id="ma-card-pt" style="display:none;">
+        <div id="ma-pt-list"></div>
+      </div>
+      <h2>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+        Website Saya
+      </h2>
+      <div class="product-list" id="ma-product-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /*<![CDATA[*/
+  var _currentUser = null;
+  var WA_NUMBER = '62878000000'; 
+  var WA_MESSAGE = function(namaWebsite, expireDate, userName, userUid, userEmail) {
+    return 'Halo Admin, saya ingin memperpanjang masa aktif website *' + namaWebsite + '* yang akan berakhir pada ' + expireDate + '.' +
+      '\n\nData akun saya:' +
+      '\nNama: ' + userName +
+      '\nUID: ' + userUid +
+      '\nEmail: ' + userEmail +
+      '\n\nMohon informasi lebih lanjut. Terima kasih!';
+  };
+  function _getSafePhoto(url, size) {
+    if (!url) return '';
+    size = size || 's300-c';
+    return url.includes('s96-c') ? url.replace('s96-c', size) : url;
+  }
+  function _toMs(val) {
+    if (!val) return null;
+    return val.seconds ? val.seconds * 1000 : val;
+  }
+  function _formatDate(ms) {
+    if (!ms) return '—';
+    return new Date(ms).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function _calcCountdown(expireMs) {
+    var diff = expireMs - Date.now();
+    if (diff <= 0) return null;
+    var s = Math.floor(diff / 1000);
+    return {
+      days:  Math.floor(s / 86400),
+      hours: Math.floor((s % 86400) / 3600),
+      mins:  Math.floor((s % 3600) / 60),
+      secs:  s % 60,
+      diff:  diff
+    };
+  }
+  function _getStatus(diff) {
+    if (!diff || diff <= 0) return 'expired';
+    return (diff / 86400000) <= 30 ? 'expiring' : 'active';
+  }
+  function _statusLabel(s) {
+    if (s === 'expired')  return 'Kedaluwarsa';
+    if (s === 'expiring') return 'Segera Berakhir';
+    return 'Aktif';
+  }
+  function _cdBlock(num, label, cls) {
+    return '<div class="countdown-block">' +
+      '<span class="cd-num">' + String(num).padStart(2,'0') + '</span>' +
+      '<span class="cd-label">' + label + '</span>' +
+      '</div>';
+  }
+  var _timers = [];
+  function _startCountdown(elId, expireMs) {
+    function tick() {
+      var el = document.getElementById(elId);
+      if (!el) return;
+      var cd = _calcCountdown(expireMs);
+      if (!cd) {
+        el.innerHTML = '<span style="color:#c0392b;font-size:0.82rem;font-weight:600;">Masa berlaku habis</span>';
+        return;
+      }
+      var cls = cd.days <= 7 ? 'urgent' : (cd.days <= 30 ? 'warning' : '');
+      el.innerHTML =
+        _cdBlock(cd.days,  'Hari',  cls) +
+        _cdBlock(cd.hours, 'Jam',   cls) +
+        _cdBlock(cd.mins,  'Menit', cls) +
+        _cdBlock(cd.secs,  'Detik', cls);
+    }
+    tick();
+    _timers.push(setInterval(tick, 1000));
+  }
+  function maRenderProducts(products) {
+    var list = document.getElementById('ma-product-list');
+    if (!list) return;
+    _timers.forEach(function(t) { clearInterval(t); });
+    _timers = [];
+    var web = (products || []).filter(function(p) { return p.kategori === 'website'; });
+    if (web.length === 0) {
+      list.innerHTML =
+        '<div class="products-empty">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' +
+        '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>' +
+        '</svg>' +
+        '<p>Belum ada produk website.</p>' +
+        '</div>';
+      return;
+    }
+    var renderTs = Date.now();
+    list.innerHTML = web.map(function(p, i) {
+      var expireMs      = _toMs(p.expireAt);
+      var cd            = expireMs ? _calcCountdown(expireMs) : null;
+      var status        = _getStatus(cd ? cd.diff : null);
+      var expireDateStr = _formatDate(expireMs);
+      var cdId          = 'cd-' + renderTs + '-' + i;
+      var waText 		  = encodeURIComponent(WA_MESSAGE(p.namaWebsite || 'Website', expireDateStr, _currentUser.displayName || '-', _currentUser.uid, _currentUser.email || '-'));
+      var waLink        = 'https://wa.me/' + WA_NUMBER + '?text=' + waText;
+      return '' +
+        '<div class="web-product-card">' +
+        '<div class="wpc-header">' +
+        '<div class="wpc-icon">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<circle cx="12" cy="12" r="10"/>' +
+        '<path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="wpc-title">' +
+        '<div class="wpc-name">' + (p.namaWebsite || '—') + '</div>' +
+        (p.urlWebsite
+         ? '<a class="wpc-url" href="' + p.urlWebsite + '" target="_blank" rel="noopener">' + p.urlWebsite + '</a>'
+         : '') +
+        '</div>' +
+        '<span class="wpc-status ' + status + '">' + _statusLabel(status) + '</span>' +
+        '</div>' +
+        '<div class="wpc-body">' +
+        '<div class="wpc-countdown" id="' + cdId + '">' +
+        (!cd ? '<span style="color:#c0392b;font-size:0.82rem;font-weight:600;">Masa berlaku habis</span>' : '') +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:auto;">' +
+        '<div class="wpc-expire-date">Berakhir: <span>' + expireDateStr + '</span></div>' +
+        '<a class="btn-wa" href="' + waLink + '" target="_blank" rel="noopener">' +
+        'Perpanjang' +
+        '</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+    web.forEach(function(p, i) {
+      var expireMs = _toMs(p.expireAt);
+      if (expireMs) _startCountdown('cd-' + renderTs + '-' + i, expireMs);
+    });
+  }
+  var MA_PT_PROGRESS = [
+    'Pengajuan Nama PT',
+    'Akta Kemenkumham',
+    'Penerbitan NIB',
+    'Proses Percetakan',
+    'Pengiriman',
+    'Aktif'
+  ];
+  function maRenderPT(products) {
+    var ptList = document.getElementById('ma-pt-list');
+    var cardPT = document.getElementById('ma-card-pt');
+    if (!ptList || !cardPT) return;
+    var ptProds = (products || []).filter(function(p) { return p.kategori === 'pt'; });
+    if (ptProds.length === 0) {
+      cardPT.style.display = 'none';
+      return;
+    }
+    cardPT.style.display = 'block';
+    ptList.innerHTML = ptProds.map(function(p) {
+      var currentStep = MA_PT_PROGRESS.indexOf(p.status);
+      if (currentStep === -1) currentStep = 0;
+      var isAktif     = p.status === 'Aktif';
+      var badgeClass  = isAktif ? 'active' : 'progress';
+      var badgeLabel  = isAktif ? 'Aktif' : 'Dalam Proses';
+      var startStr    = _formatDate(_toMs(p.startAt));
+      var collapsedId = 'pt-collapsed-' + ptProds.indexOf(p);
+      var collapsedSteps = '';
+      var visibleSteps   = '';
+      MA_PT_PROGRESS.forEach(function(step, idx) {
+        var cls = idx < currentStep ? 'done' : (idx === currentStep ? 'current' : '');
+        var dot = idx < currentStep ? '✓' : (idx === currentStep ? '●' : (idx + 1));
+        var html = '<div class="pt-step ' + cls + '">' +
+            '<div class="pt-step-dot">' + dot + '</div>' +
+            '<div class="pt-step-label">' + step + '</div>' +
+            '</div>';
+        if (isAktif && idx < currentStep) {
+          collapsedSteps += html;
+        } else {
+          visibleSteps += html;
+        }
+      });
+      var stepperHtml = '';
+      if (isAktif && collapsedSteps) {
+        stepperHtml +=
+          '<div class="pt-collapsed-wrap" id="' + collapsedId + '">' +
+          collapsedSteps +
+          '</div>' +
+          '<button class="pt-toggle-btn" id="btn-' + collapsedId + '" onclick="ptToggleCollapsed(\'' + collapsedId + '\')">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+          '<polyline points="6 9 12 15 18 9"/>' +
+          '</svg>' +
+          '<span>Lihat riwayat</span>' +
+          '</button>';
+      }
+      stepperHtml += visibleSteps;
+      var waMsg = encodeURIComponent(
+        'Halo Admin, saya ingin menanyakan status PT *' + (p.namaPT || 'PT saya') + '*.' +
+        '\n\nData akun saya:' +
+        '\nNama: ' + _currentUser.displayName +
+        '\nUID: ' + _currentUser.uid +
+        '\nEmail: ' + _currentUser.email +
+        '\n\nMohon informasinya. Terima kasih!'
+      );
+      var waLink = 'https://wa.me/' + WA_NUMBER + '?text=' + waMsg;
+      return '<div class="pt-item">' +
+        '<div class="pt-item-header">' +
+        '<div class="pt-icon">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e65100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<rect x="2" y="7" width="20" height="14" rx="2"/>' +
+        '<path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="pt-name">' + (p.namaPT || '—') + '</div>' +
+        '<span class="pt-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+        '</div>' +
+        '<div class="pt-progress">' + stepperHtml + '</div>' +
+        '<div class="pt-footer">' +
+        'Terdaftar: <span>' + startStr + '</span>' +
+        (!isAktif
+         ? '<a class="btn-wa" href="' + waLink + '" target="_blank" rel="noopener">' +
+         'Tanya Status' +
+         '</a>'
+         : '') +
+        '</div>' +
+
+        '</div>';
+    }).join('');
+  }
+  function maRenderProfile(user) {
+    var photo = _getSafePhoto(user.photoURL, 's300-c');
+    document.getElementById('ma-avatar-wrap').innerHTML = photo
+      ? '<img class="cp-avatar" src="' + photo + '" alt="Foto">'
+    : '<div class="cp-avatar-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>';
+    document.getElementById('ma-name').textContent  = user.displayName || 'Tanpa Nama';
+    document.getElementById('ma-email').textContent = user.email || '';
+    document.getElementById('ma-uid').textContent   = 'UID: ' + user.uid;
+  }
+  function maShowLoading() {
+    document.getElementById('ma-loading').style.display       = 'flex';
+    document.getElementById('ma-not-logged-in').style.display = 'none';
+    document.getElementById('ma-content').style.display       = 'none';
+  }
+  function maShowContent() {
+    document.getElementById('ma-loading').style.display       = 'none';
+    document.getElementById('ma-not-logged-in').style.display = 'none';
+    document.getElementById('ma-content').style.display       = 'grid';
+  }
+  function maShowGuest() {
+    document.getElementById('ma-loading').style.display       = 'none';
+    document.getElementById('ma-not-logged-in').style.display = 'flex';
+    document.getElementById('ma-content').style.display       = 'none';
+  var wrap = document.getElementById('ma-notif-wrap');
+  if (wrap) wrap.style.display = 'none';
+  }
+  maShowLoading();
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      _currentUser = user;
+      firebase.firestore().collection('users').doc(user.uid).get()
+        .then(function(doc) {
+        var data = doc.exists ? doc.data() : {};
+        maRenderProfile(user);
+        maRenderProducts(data.products || []);
+        maRenderPT(data.products || []);
+        maCheckExpiry(data.products || []);
+        maShowContent();
+      })
+        .catch(function(e) {
+        console.error('Member area error:', e);
+        maRenderProfile(user);
+        maRenderProducts([]);
+        maShowContent();
+      });
+    } else {
+      maShowGuest();
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+    var btnLogin = document.getElementById('ma-btn-login');
+    if (btnLogin) {
+      btnLogin.addEventListener('click', function() {
+        firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
+          .catch(function(e) { console.error('Login error:', e.message); });
+      });
+    }
+    var btnLogout = document.getElementById('ma-btn-logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', function() {
+        firebase.auth().signOut().catch(console.error);
+      });
+    }
+  });
+  window.ptToggleCollapsed = function(id) {
+    var wrap = document.getElementById(id);
+    var btn  = document.getElementById('btn-' + id);
+    if (!wrap || !btn) return;
+    var isOpen = wrap.classList.contains('open');
+    wrap.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+    btn.querySelector('span').textContent = isOpen ? 'Lihat riwayat' : 'Sembunyikan';
+  };
+  function maCheckExpiry(products) {
+    var wrap = document.getElementById('ma-notif-wrap');
+    if (!wrap) return;
+    var webProds = (products || []).filter(function(p) {
+      return p.kategori === 'website';
+    });
+    var notifs = [];
+    webProds.forEach(function(p) {
+      var expireMs = _toMs(p.expireAt);
+      if (!expireMs) return;
+      var diff     = expireMs - Date.now();
+      var diffDays = Math.ceil(diff / 86400000);
+      var nama     = p.namaWebsite || 'Website kamu';
+      var tgl      = _formatDate(expireMs);
+      var waMsg    = encodeURIComponent(
+        'Halo Admin, saya ingin memperpanjang masa aktif website *' + nama + '* yang akan berakhir pada ' + tgl + '.' +
+        '\n\nData akun saya:' +
+        '\nNama: '  + (_currentUser ? _currentUser.displayName : '-') +
+        '\nUID: '   + (_currentUser ? _currentUser.uid : '-') +
+        '\nEmail: ' + (_currentUser ? _currentUser.email : '-') +
+        '\n\nMohon informasi lebih lanjut. Terima kasih!'
+      );
+      var waLink = 'https://wa.me/' + WA_NUMBER + '?text=' + waMsg;
+      if (diff <= 0) {
+        notifs.push({
+          type:  'danger',
+          icon:  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+          title: 'Website "' + nama + '" sudah kedaluwarsa!',
+          msg:   'Masa aktif berakhir ' + tgl + '. Segera <a href="' + waLink + '" target="_blank" rel="noopener">hubungi admin</a>.',
+          toast: '"' + nama + '" sudah kedaluwarsa!'
+        });
+      } else if (diffDays <= 7) {
+        notifs.push({
+          type:  'danger',
+          icon:  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+          title: 'Website "' + nama + '" berakhir dalam ' + diffDays + ' hari!',
+          msg:   'Berakhir ' + tgl + '. <a href="' + waLink + '" target="_blank" rel="noopener">Perpanjang sekarang</a>.',
+          toast: '"' + nama + '" berakhir ' + diffDays + ' hari lagi!'
+        });
+      } else if (diffDays <= 30) {
+        notifs.push({
+          type:  'warning',
+          icon:  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+          title: 'Website "' + nama + '" berakhir dalam ' + diffDays + ' hari.',
+          msg:   'Berakhir ' + tgl + '. Segera <a href="' + waLink + '" target="_blank" rel="noopener">hubungi admin</a>.',
+          toast: '"' + nama + '" berakhir ' + diffDays + ' hari lagi.'
+        });
+      }
+    });
+    if (notifs.length === 0) {
+      wrap.style.display = 'none';
+    } else {
+      wrap.style.display = 'flex';
+      wrap.innerHTML = notifs.map(function(n) {
+        return '<div class="ma-notif ' + n.type + '">' +
+          '<div class="ma-notif-icon">' + n.icon + '</div>' +
+          '<div class="ma-notif-body">' +
+          '<strong>' + n.title + '</strong>' + n.msg +
+          '</div>' +
+          '</div>';
+      }).join('');
+    }
+  }
+  /*]]>*/
+</script>
