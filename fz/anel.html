@@ -1,0 +1,729 @@
+<style>
+    aside {display:none!important;}
+  .inpost main, .inpage main {
+    max-width: -moz-available;
+    max-width: -webkit-fill-available;
+    width: -moz-available;
+    width: -webkit-fill-available;
+  }
+  .danger:after {
+    background-image: none;
+  }
+
+  .adm-wrap {
+    max-width: -moz-available;
+    max-width: -webkit-fill-available;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    margin: 0 auto;
+    font-family: system-ui, sans-serif;
+  }
+
+  .adm-login {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; padding: 60px 16px; text-align: center; color: #888;
+  }
+  .adm-login p { margin: 0; font-size: 0.9rem; }
+  .adm-btn-login {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #1a1a1a; color: var(--bg-color); border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .adm-btn-login:hover { background: #333; }
+
+  .adm-forbidden {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 60px 16px; text-align: center; color: #888;
+  }
+  .adm-forbidden p { margin: 0; font-size: 0.9rem; }
+
+  .adm-panel { display: none; }
+  .adm-panel.visible { display: block; }
+
+  .adm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  .adm-header h2 { margin: 0; font-size: 1.1rem!important; font-weight: 700; }
+
+  .adm-search-row {
+    display: flex; gap: 8px; margin-bottom: 18px;
+  }
+  .adm-input {
+    flex: 1; padding: 9px 13px; border: 1px solid var(--skl-soft); border-radius: 8px;
+    font-size: 0.88rem; outline: none;
+    transition: border-color 0.15s;
+  }
+  .adm-input:focus { border-color: #4a90e2; }
+  .adm-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border: none; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s;
+  }
+  .adm-btn:active { transform: scale(0.97); }
+  .adm-btn.success { background: #25d366; color: var(--bg-color); }
+  .adm-btn.success:hover { background: #1ebe5d; }
+  .adm-btn.danger  { background: none; color: #c0392b; border: 1px solid var(--skl-soft); }
+  .adm-btn.danger:hover  { background: #fff0ef; }
+  .adm-btn.ghost   { background: var(--bg-shade); color: #333; border: 1px solid var(--skl-soft); }
+  .adm-btn.ghost:hover   { background: #ebebeb; }
+
+  .adm-member-card {
+    background: var(--bg-color); border: 1px solid var(--skl-soft); border-radius: 14px;
+    overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 14px;
+  }
+  .adm-member-card:hover {
+    border-color: orangered;
+    box-shadow: 0 9px 8px -10px orangered;
+  }
+  .adm-member-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; background: var(--bg-shade); border-bottom: 1px solid var(--skl-soft);
+    cursor: pointer; user-select: none;
+  }
+  .adm-member-header:hover { background: var(--bg-color); }
+  .adm-member-header img {
+    width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  }
+  .adm-member-pro img {
+    aspect-ratio: 1/1;
+    width: 3rem;
+    height: 3rem;
+    max-height: 3rem;
+    max-width: 3rem;
+    border-radius: 20rem!important;
+  }
+  .adm-member-header .amh-avatar-placeholder {
+    width: 38px; height: 38px; border-radius: 50%; background: #e8e8e8;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .adm-member-info { flex: 1; overflow: hidden; }
+  .adm-member-name  { font-size: 0.9rem; font-weight: 700; }
+  .adm-member-email { font-size: 0.75rem; color: #888; margin-top: 1px; }
+  .adm-member-uid   { font-size: 0.68rem; color: #bbb; margin-top: 1px; word-break: break-all; }
+  .adm-chevron { transition: transform 0.2s; flex-shrink: 0; }
+  .adm-chevron.open { transform: rotate(180deg); }
+  .adm-product-count {
+    font-size: 0.75rem; background: #e8f0fe; color: #4a90e2;
+    padding: 2px 9px; border-radius: 12px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .adm-member-body { padding: 16px 18px; }
+
+  .adm-product-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+  .adm-product-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: var(--bg-shade); border: 1px solid var(--skl-soft);
+    border-radius: 9px; flex-wrap: wrap;
+  }
+  .adm-product-item .api-info { flex: 1;
+    overflow: hidden;
+    min-width: fit-content; }
+  .adm-product-item .api-name { font-size: 0.86rem; font-weight: 600; }
+  .adm-product-item .api-url  { font-size: 0.73rem; color: #4a90e2; text-decoration: none; }
+  .adm-product-item .api-url:hover { text-decoration: underline; }
+  .adm-product-item .api-expire { font-size: 0.72rem; color: #999; margin-top: 2px; }
+  .adm-product-item .api-status {
+    font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; flex-shrink: 0;
+  }
+  .adm-product-item .api-status.active   { background: #e8f5e9; color: #2e7d32; }
+  .adm-product-item .api-status.expired  { background: #fdecea; color: #c0392b; }
+  .adm-product-item .api-status.expiring { background: #fff8e1; color: #e65100; }
+
+  .adm-form {
+    background: #f8f9fa; border: 1px solid var(--skl-soft);
+    border-radius: 10px; padding: 16px; margin-top: 4px;
+  }
+  .adm-form h4 { margin: 0 0 12px; font-size: 0.88rem; font-weight: 700; }
+  .adm-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+  }
+  .adm-form-group { display: flex; flex-direction: column; gap: 4px; }
+  .adm-form-group label { font-size: 0.75rem; font-weight: 600; color: #555; }
+  .adm-form-group input { padding: 8px 11px; border: 1px solid var(--skl-soft); border-radius: 7px; font-size: 0.85rem; outline: none; }
+  .adm-form-group input:focus { border-color: #4a90e2; }
+  .adm-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  #adm-toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--text-color); color: var(--bg-color); padding: 10px 18px;
+    border-radius: 9px; font-size: 0.85rem; font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s; pointer-events: none;
+  }
+  #adm-toast.show { opacity: 1; transform: translateY(0); }
+  #adm-toast.green { background: #2e7d32; }
+  #adm-toast.red   { background: #c0392b; }
+
+  .adm-loading {
+    text-align: center; padding: 32px; color: #aaa; font-size: 0.88rem;
+  }
+
+  @media (max-width: 600px) {
+    .adm-member-header {
+      flex-direction: column;
+      text-align: center;
+    }
+    .adm-member-pro {
+      align-items: start;
+      align-self: flex-start;
+      text-align: start;
+    }
+    .adm-product-count {
+      position: absolute;
+      right: 0.75rem;
+    }
+    .adm-form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div id="adm-toast"></div>
+
+<div class="adm-wrap">
+
+  <div class="adm-loading" id="adm-auth-loading">Memeriksa akses…</div>
+
+  <div class="adm-login" id="adm-login-state" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    <p>Halaman ini khusus admin.<br>Silakan login terlebih dahulu.</p>
+    <button class="adm-btn-login" id="adm-btn-login">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      Login dengan Google
+    </button>
+  </div>
+
+  <div class="adm-forbidden" id="adm-forbidden" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+    </svg>
+    <p>Akses ditolak. Akun kamu bukan admin.</p>
+    <button class="adm-btn ghost" id="adm-btn-logout-forbidden">Logout</button>
+  </div>
+
+  <div class="adm-panel" id="adm-panel">
+
+    <div class="adm-header">
+      <h2>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Admin Panel — Produk Member
+      </h2>
+      <button class="adm-btn ghost" id="adm-btn-logout-panel">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+
+    <div class="adm-search-row">
+      <input class="adm-input" type="text" id="adm-search-input" placeholder="Cari email member..">
+      <button class="adm-btn btn-primary" id="adm-search-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+      <button class="adm-btn ghost" id="adm-load-all-btn">All</button>
+    </div>
+
+    <div id="adm-member-list"></div>
+
+  </div>
+</div>
+
+
+<script>
+  /*<![CDATA[*/
+
+  var ADMIN_UIDS = [
+    'DbTXaljWI6Nl4ly',
+    'jkDsEz2LyRcoFfj'
+  ];
+
+  var PT_PROGRESS = [
+    'Pengajuan Nama PT',
+    'Akta Kemenkumham',
+    'Penerbitan NIB',
+    'Proses Percetakan',
+    'Pengiriman',
+    'Aktif'
+  ];
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyC6_1QRD2UOreItunlrd80cLBqPJu7jI04",
+      authDomain: "faztama-digital.firebaseapp.com",
+      projectId: "faztama-digital",
+      storageBucket: "faztama-digital.firebasestorage.app",
+      messagingSenderId: "35279736053",
+      appId: "1:35279736053:web:5dd51ee50922fe183689bc"
+    });
+  }
+
+  function showToast(msg, type) {
+    var t = document.getElementById('adm-toast');
+    t.textContent = msg;
+    t.className = 'show ' + (type || '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() { t.className = ''; }, 3000);
+  }
+
+  function _formatDateLocal(ms) {
+    if (!ms) return '—';
+    return new Date(ms).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function _toMs(val) {
+    if (!val) return null;
+    return val.seconds ? val.seconds * 1000 : val;
+  }
+
+  function _getStatusWebsite(expireMs) {
+    if (!expireMs) return 'expired';
+    var diff = expireMs - Date.now();
+    if (diff <= 0) return 'expired';
+    if (diff / 86400000 <= 30) return 'expiring';
+    return 'active';
+  }
+
+  function _statusWebsiteLabel(s) {
+    if (s === 'expired')  return 'Kedaluwarsa';
+    if (s === 'expiring') return 'Segera Berakhir';
+    return 'Aktif';
+  }
+
+  function _statusPTClass(status) {
+    if (status === 'Aktif') return 'active';
+    return 'expiring'; 
+  }
+
+  function renderMemberList(members) {
+    var listEl = document.getElementById('adm-member-list');
+    if (!members || members.length === 0) {
+      listEl.innerHTML = '<div class="adm-loading">Tidak ada member ditemukan.</div>';
+      return;
+    }
+
+    listEl.innerHTML = members.map(function(m) {
+      var uid   = m.uid || m.id;
+      var name  = m.displayName || 'Tanpa Nama';
+      var email = m.email || '';
+      var photo = m.photoURL || '';
+      var allProds = m.products || [];
+      var webCount = allProds.filter(function(p){ return p.kategori === 'website'; }).length;
+      var ptCount  = allProds.filter(function(p){ return p.kategori === 'pt'; }).length;
+
+      var avatarHtml = photo
+      ? '<img src="' + photo + '" alt="Avatar">'
+      : '<div class="amh-avatar-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>';
+
+      return '<div class="adm-member-card pointer" id="mc-' + uid + '">' +
+        '<div class="adm-member-header" onclick="toggleMember(\'' + uid + '\')">' +
+        '<div class="adm-member-pro flex g-1 fg-1">'
+        + avatarHtml +
+        '<div class="adm-member-info">' +
+        '<div class="adm-member-name">' + name + '</div>' +
+        '<div class="adm-member-email">' + email + '</div>' +
+        '<div class="adm-member-uid">' + uid + '</div>' +
+        '</div>' +
+        '</div>' +
+        '<span class="adm-product-count" id="badge-' + uid + '">' + webCount + ' web · ' + ptCount + ' PT</span>' +
+        '<svg class="adm-chevron" id="chv-' + uid + '" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '</div>' +
+        '<div class="adm-member-body" id="mb-' + uid + '" style="display:none;">' +
+        renderMemberBody(uid, allProds) +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function renderMemberBody(uid, products) {
+    var webProds = products.filter(function(p){ return p.kategori === 'website'; });
+    var ptProds  = products.filter(function(p){ return p.kategori === 'pt'; });
+
+    var webHtml = '<div style="font-size:0.8rem;font-weight:700;color:#555;margin-bottom:10px;">Website</div>';
+
+    if (webProds.length === 0) {
+      webHtml += '<div style="color:#bbb;font-size:0.84rem;margin-bottom:12px;">Belum ada produk website.</div>';
+    } else {
+      webHtml += '<div class="adm-product-list">' +
+        webProds.map(function(p) {
+        var realIdx  = products.indexOf(p);
+        var expireMs = _toMs(p.expireAt);
+        var status   = _getStatusWebsite(expireMs);
+        var expireStr= _formatDateLocal(expireMs);
+        return '<div class="adm-product-item">' +
+          '<div class="api-info">' +
+          '<div class="api-name">' + (p.namaWebsite || '—') + '</div>' +
+          (p.urlWebsite ? '<a class="api-url" href="' + p.urlWebsite + '" target="_blank" rel="noopener">' + p.urlWebsite + '</a>' : '') +
+          '<div class="api-expire">Berakhir: ' + expireStr + '</div>' +
+          '</div>' +
+          '<span class="api-status ' + status + '">' + _statusWebsiteLabel(status) + '</span>' +
+          '<button class="adm-btn danger" style="padding:6px 10px;font-size:0.78rem;" onclick="perpanjangProduk(\'' + uid + '\',' + realIdx + ')">' +
+          '+1 Tahun' +
+          '</button>' +
+          '<button class="adm-btn danger" style="padding:6px 10px;font-size:0.78rem;" onclick="hapusProduk(\'' + uid + '\',' + realIdx + ')">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+          '</button>' +
+          '</div>';
+      }).join('') +
+        '</div>';
+    }
+
+    webHtml +=
+      '<button class="adm-btn btn-primary" style="font-size:0.82rem;margin-top:4px;" onclick="toggleForm(\'' + uid + '\',\'website\')">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      ' Tambah Website' +
+      '</button>' +
+      '<div class="adm-form" id="form-website-' + uid + '" style="display:none;margin-top:12px;">' +
+      '<h4>Tambah Produk Website</h4>' +
+      '<div class="adm-form-grid">' +
+      '<div class="adm-form-group">' +
+      '<label>Nama Website</label>' +
+      '<input type="text" id="fw-name-' + uid + '" placeholder="Toko Online Budi">' +
+      '</div>' +
+      '<div class="adm-form-group">' +
+      '<label>URL Website</label>' +
+      '<input type="url" id="fw-url-' + uid + '" placeholder="https://tokobudi.com">' +
+      '</div>' +
+      '<div class="adm-form-group">' +
+      '<label>Tanggal Mulai Aktif</label>' +
+      '<input type="date" id="fw-start-' + uid + '">' +
+      '</div>' +
+      '<div class="adm-form-group">' +
+      '<label>Masa Berlaku (tahun)</label>' +
+      '<input type="number" id="fw-years-' + uid + '" value="1" min="1" max="10">' +
+      '</div>' +
+      '</div>' +
+      '<div class="adm-form-actions">' +
+      '<button class="adm-btn ghost" onclick="toggleForm(\'' + uid + '\',\'website\')">Batal</button>' +
+      '<button class="adm-btn btn-primary" onclick="simpanWebsite(\'' + uid + '\')">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+      ' Simpan' +
+      '</button>' +
+      '</div>' +
+      '</div>';
+
+    var ptHtml = '<div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--skl-soft);">' +
+        '<div style="font-size:0.8rem;font-weight:700;color:#555;margin-bottom:10px;">PT (Perseroan Terbatas)</div>';
+
+    if (ptProds.length === 0) {
+      ptHtml += '<div style="color:#bbb;font-size:0.84rem;margin-bottom:12px;">Belum ada produk PT.</div>';
+    } else {
+      ptHtml += '<div class="adm-product-list">' +
+        ptProds.map(function(p) {
+        var realIdx = products.indexOf(p);
+        var statusClass = _statusPTClass(p.status);
+        return '<div class="adm-product-item">' +
+          '<div class="api-info">' +
+          '<div class="api-name">' + (p.namaPT || '—') + '</div>' +
+          '<div class="api-expire">Mulai: ' + _formatDateLocal(_toMs(p.startAt)) + '</div>' +
+          '</div>' +
+          '<span class="api-status ' + statusClass + '" style="white-space:nowrap;">' + (p.status || '—') + '</span>' +
+          // Dropdown update status langsung
+          '<select onchange="updateStatusPT(\'' + uid + '\',' + realIdx + ',this.value)" style="padding:5px 8px;border:1px solid var(--skl-soft);border-radius:7px;font-size:0.78rem;outline:none;cursor:pointer;">' +
+          PT_PROGRESS.map(function(s) {
+          return '<option value="' + s + '"' + (p.status === s ? ' selected' : '') + '>' + s + '</option>';
+        }).join('') +
+          '</select>' +
+          '<button class="adm-btn danger" style="padding:6px 10px;font-size:0.78rem;" onclick="hapusProduk(\'' + uid + '\',' + realIdx + ')">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+          '</button>' +
+          '</div>';
+      }).join('') +
+        '</div>';
+    }
+
+    ptHtml +=
+      '<button class="adm-btn btn-primary" style="font-size:0.82rem;margin-top:4px;" onclick="toggleForm(\'' + uid + '\',\'pt\')">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>' +
+      ' Tambah PT' +
+      '</button>' +
+      '<div class="adm-form" id="form-pt-' + uid + '" style="display:none;margin-top:12px;">' +
+      '<h4>Tambah Produk PT</h4>' +
+      '<div class="adm-form-grid">' +
+      '<div class="adm-form-group">' +
+      '<label>Nama PT</label>' +
+      '<input type="text" id="fp-name-' + uid + '" placeholder="PT Maju Bersama">' +
+      '</div>' +
+      '<div class="adm-form-group">' +
+      '<label>Status / Progress</label>' +
+      '<select id="fp-status-' + uid + '" style="padding:8px 11px;border:1px solid var(--skl-soft);border-radius:7px;font-size:0.85rem;outline:none;">' +
+      PT_PROGRESS.map(function(s) {
+      return '<option value="' + s + '">' + s + '</option>';
+    }).join('') +
+      '</select>' +
+      '</div>' +
+      '<div class="adm-form-group">' +
+      '<label>Tanggal Mulai</label>' +
+      '<input type="date" id="fp-start-' + uid + '">' +
+      '</div>' +
+      '</div>' +
+      '<div class="adm-form-actions">' +
+      '<button class="adm-btn ghost" onclick="toggleForm(\'' + uid + '\',\'pt\')">Batal</button>' +
+      '<button class="adm-btn btn-primary" onclick="simpanPT(\'' + uid + '\')">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+      ' Simpan' +
+      '</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>'; 
+
+    return webHtml + ptHtml;
+  }
+
+  window.toggleMember = function(uid) {
+    var body   = document.getElementById('mb-' + uid);
+    var chv    = document.getElementById('chv-' + uid);
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    if (chv) chv.classList.toggle('open', !isOpen);
+  };
+
+  window.toggleForm = function(uid, tipe) {
+    var formId      = 'form-' + tipe + '-' + uid;
+    var otherTipe   = tipe === 'pt' ? 'website' : 'pt';
+    var otherFormId = 'form-' + otherTipe + '-' + uid;
+
+    var otherForm = document.getElementById(otherFormId);
+    if (otherForm) otherForm.style.display = 'none';
+
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'block' : 'none';
+
+    if (isHidden) {
+      var today    = new Date().toISOString().split('T')[0];
+      var prefixId = tipe === 'pt' ? 'fp-start-' : 'fw-start-';
+      var startEl  = document.getElementById(prefixId + uid);
+      if (startEl && !startEl.value) startEl.value = today;
+    }
+  };
+
+  window.simpanWebsite = function(uid) {
+    var nama  = (document.getElementById('fw-name-'  + uid).value || '').trim();
+    var url   = (document.getElementById('fw-url-'   + uid).value || '').trim();
+    var start = document.getElementById('fw-start-'  + uid).value;
+    var years = parseInt(document.getElementById('fw-years-' + uid).value) || 1;
+
+    if (!nama)  { showToast('Nama website wajib diisi.', 'red'); return; }
+    if (!start) { showToast('Tanggal mulai wajib diisi.', 'red'); return; }
+
+    var startMs  = new Date(start).getTime();
+    var expireMs = startMs + (years * 365.25 * 24 * 3600 * 1000);
+
+    var userRef = db.collection('users').doc(uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) { showToast('User tidak ditemukan.', 'red'); return; }
+      var products = doc.data().products || [];
+      products.push({
+        kategori:    'website',
+        namaWebsite: nama,
+        urlWebsite:  url,
+        startAt:     startMs,
+        expireAt:    expireMs,
+        active:      true
+      });
+      return userRef.update({ products: products });
+    }).then(function() {
+      showToast('Website berhasil disimpan!', 'green');
+      reloadMember(uid);
+    }).catch(function(e) {
+      console.error(e);
+      showToast('Gagal menyimpan: ' + e.message, 'red');
+    });
+  };
+
+  window.simpanPT = function(uid) {
+    var nama   = (document.getElementById('fp-name-'   + uid).value || '').trim();
+    var status = (document.getElementById('fp-status-' + uid).value || '').trim();
+    var start  = document.getElementById('fp-start-'   + uid).value;
+
+    if (!nama)  { showToast('Nama PT wajib diisi.', 'red'); return; }
+    if (!start) { showToast('Tanggal mulai wajib diisi.', 'red'); return; }
+
+    var startMs = new Date(start).getTime();
+
+    var userRef = db.collection('users').doc(uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) { showToast('User tidak ditemukan.', 'red'); return; }
+      var products = doc.data().products || [];
+      products.push({
+        kategori: 'pt',
+        namaPT:   nama,
+        status:   status,
+        startAt:  startMs,
+        active:   status === 'Aktif'
+      });
+      return userRef.update({ products: products });
+    }).then(function() {
+      showToast('PT berhasil disimpan!', 'green');
+      reloadMember(uid);
+    }).catch(function(e) {
+      console.error(e);
+      showToast('Gagal menyimpan: ' + e.message, 'red');
+    });
+  };
+
+  window.updateStatusPT = function(uid, idx, newStatus) {
+    var userRef = db.collection('users').doc(uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) return;
+      var products = doc.data().products || [];
+      if (!products[idx]) return;
+      products[idx].status = newStatus;
+      products[idx].active = newStatus === 'Aktif';
+      return userRef.update({ products: products });
+    }).then(function() {
+      showToast('Status PT diperbarui!', 'green');
+      reloadMember(uid);
+    }).catch(function(e) {
+      showToast('Gagal update status: ' + e.message, 'red');
+    });
+  };
+
+  window.perpanjangProduk = function(uid, idx) {
+    if (!confirm('Perpanjang 1 tahun website ini?')) return;
+    var userRef = db.collection('users').doc(uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) return;
+      var products = doc.data().products || [];
+      if (!products[idx]) return;
+      var now     = Date.now();
+      var current = _toMs(products[idx].expireAt) || now;
+      var base    = Math.max(current, now);
+      products[idx].expireAt = base + (365.25 * 24 * 3600 * 1000);
+      products[idx].active   = true;
+      return userRef.update({ products: products });
+    }).then(function() {
+      showToast('Masa berlaku diperpanjang 1 tahun!', 'green');
+      reloadMember(uid);
+    }).catch(function(e) {
+      showToast('Gagal perpanjang: ' + e.message, 'red');
+    });
+  };
+
+  window.hapusProduk = function(uid, idx) {
+    if (!confirm('Hapus produk ini?')) return;
+    var userRef = db.collection('users').doc(uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) return;
+      var products = doc.data().products || [];
+      products.splice(idx, 1);
+      return userRef.update({ products: products });
+    }).then(function() {
+      showToast('Produk dihapus.', '');
+      reloadMember(uid);
+    }).catch(function(e) {
+      showToast('Gagal hapus: ' + e.message, 'red');
+    });
+  };
+
+  function reloadMember(uid) {
+    db.collection('users').doc(uid).get().then(function(doc) {
+      if (!doc.exists) return;
+      var m        = doc.data();
+      var products = m.products || [];
+      var webCount = products.filter(function(p){ return p.kategori === 'website'; }).length;
+      var ptCount  = products.filter(function(p){ return p.kategori === 'pt'; }).length;
+
+      var body = document.getElementById('mb-' + uid);
+      if (body) body.innerHTML = renderMemberBody(uid, products);
+
+      var badge = document.getElementById('badge-' + uid);
+      if (badge) badge.textContent = webCount + ' web · ' + ptCount + ' PT';
+    });
+  }
+
+  function loadAll() {
+    var listEl = document.getElementById('adm-member-list');
+    listEl.innerHTML = '<div class="adm-loading">Memuat semua member…</div>';
+    db.collection('users').get().then(function(snap) {
+      var members = [];
+      snap.forEach(function(doc) {
+        var d = doc.data(); d.id = doc.id; members.push(d);
+      });
+      renderMemberList(members);
+    }).catch(function(e) { showToast('Gagal memuat: ' + e.message, 'red'); });
+  }
+
+  function searchMember(query) {
+    query = (query || '').trim().toLowerCase();
+    if (!query) { loadAll(); return; }
+
+    var listEl = document.getElementById('adm-member-list');
+    listEl.innerHTML = '<div class="adm-loading">Mencari…</div>';
+
+    db.collection('users').doc(query).get().then(function(doc) {
+      if (doc.exists) {
+        var d = doc.data(); d.id = doc.id;
+        renderMemberList([d]);
+      } else {
+        return db.collection('users').where('email', '==', query).get().then(function(snap) {
+          var members = [];
+          snap.forEach(function(d) { var m = d.data(); m.id = d.id; members.push(m); });
+          renderMemberList(members);
+        });
+      }
+    }).catch(function(e) { showToast('Error: ' + e.message, 'red'); });
+  }
+
+  firebase.auth().onAuthStateChanged(function(user) {
+    document.getElementById('adm-auth-loading').style.display = 'none';
+    document.getElementById('adm-login-state').style.display = 'none';
+
+    if (!user) {
+      document.getElementById('adm-login-state').style.display = 'flex';
+      return;
+    }
+
+    if (ADMIN_UIDS.indexOf(user.uid) === -1) {
+      document.getElementById('adm-forbidden').style.display = 'flex';
+      return;
+    }
+
+    document.getElementById('adm-panel').classList.add('visible');
+    loadAll();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('adm-btn-login').addEventListener('click', function() {
+      firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
+        .catch(function(e) { showToast('Login gagal: ' + e.message, 'red'); });
+    });
+
+    function doLogout() { firebase.auth().signOut().catch(console.error); }
+    document.getElementById('adm-btn-logout-forbidden').addEventListener('click', doLogout);
+    document.getElementById('adm-btn-logout-panel').addEventListener('click', doLogout);
+
+    document.getElementById('adm-search-btn').addEventListener('click', function() {
+      searchMember(document.getElementById('adm-search-input').value);
+    });
+
+    document.getElementById('adm-search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchMember(this.value);
+    });
+
+    document.getElementById('adm-load-all-btn').addEventListener('click', function() {
+      document.getElementById('adm-search-input').value = '';
+      loadAll();
+    });
+  });
+
+  /*]]>*/
+</script>
