@@ -1,0 +1,375 @@
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'/>
+<script src='https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore-compat.js'/>
+
+<style>
+  #member-login-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  #member-login {
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: #f1f3f5; border: 2px solid #e0e0e0;
+    transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0;
+  }
+  #member-login:hover { border-color: #aaa; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  #member-login img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  #member-login .default-icon svg { width: 22px; height: 22px; display: block; }
+  
+  #member-login-wrapper .notif-badge {
+    position: absolute; top: -3px; right: -3px;
+    width: 16px; height: 16px; background: #c0392b;
+    border-radius: 50%; border: 2px solid #fff;
+    font-size: 0.6rem; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; animation: badgePop 0.3s ease;
+  }
+  @keyframes badgePop {
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
+  }
+  
+  #member-dropdown {
+    display: none; position: absolute;
+    top: calc(100% + 10px); right: 0; min-width: 220px;
+    background: #fff; border: 1px solid #e8e8e8; border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.13); z-index: 9999;
+    overflow: hidden; animation: dropFadeIn 0.18s ease;
+  }
+  #member-dropdown.open { display: block; }
+  @keyframes dropFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  .dropdown-guest { padding: 18px 18px 14px; }
+  .dropdown-guest p { margin: 0 0 12px; font-size: 0.85rem; color: #555; line-height: 1.4; }
+  .dropdown-guest a.btn-member-area {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    background: #1a1a1a; color: #fff; text-decoration: none;
+    border-radius: 8px; padding: 9px 14px; font-size: 0.85rem;
+    font-weight: 600; transition: background 0.18s;
+  }
+  .dropdown-guest a.btn-member-area:hover { background: #333; }
+  
+  .dropdown-user-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid #f0f0f0; background: #fafafa;
+  }
+  .dropdown-user-header img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .dropdown-user-header .duh-info { overflow: hidden; }
+  .dropdown-user-header .duh-name {
+    font-size: 0.88rem; font-weight: 700; color: #1a1a1a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dropdown-user-header .duh-email {
+    font-size: 0.75rem; color: #888;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  
+  .dropdown-actions { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .dropdown-actions a,
+  .dropdown-actions button {
+    display: flex; align-items: center; gap: 9px; width: 100%;
+    background: none; border: none; border-radius: 7px; padding: 9px 10px;
+    font-size: 0.84rem; color: #222; cursor: pointer; text-decoration: none;
+    transition: background 0.15s; text-align: left;
+  }
+  .dropdown-actions a:hover,
+  .dropdown-actions button:hover { background: #f3f4f6; }
+  .dropdown-actions button.btn-logout-dd { color: #c0392b; }
+  .dropdown-actions button.btn-logout-dd:hover { background: #fff0ef; }
+  
+  #ma-toast-notif {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 99999; display: flex; flex-direction: column;
+    gap: 8px; align-items: center; pointer-events: none;
+    opacity: 0; transition: opacity 0.25s, transform 0.25s;
+    min-width: 300px; max-width: 90vw;
+  }
+  #ma-toast-notif.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  
+  .ma-toast-item {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%;
+    padding: 12px 16px; border-radius: 10px; font-size: 0.83rem;
+    line-height: 1.45; color: #fff;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    animation: toastItemIn 0.25s ease forwards;
+  }
+  @keyframes toastItemIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ma-toast-item.danger  { background: #c0392b; }
+  .ma-toast-item.warning { background: #e65100; }
+  .ma-toast-item-body { flex: 1; }
+  .ma-toast-item-body strong { display: block; font-weight: 700; margin-bottom: 2px; }
+  .ma-toast-close {
+    background: none; border: none; color: rgba(255,255,255,0.7);
+    cursor: pointer; font-size: 1rem; line-height: 1;
+    padding: 0; flex-shrink: 0; transition: color 0.15s;
+  }
+  .ma-toast-close:hover { color: #fff; }
+  
+  @media only screen and (max-width: 768px) {
+    #member-dropdown { right: auto; left: 0; }
+  }
+</style>
+
+<div id='member-login-wrapper'>
+  <div aria-label='Menu Member' id='member-login' role='button' tabindex='0'>
+    <span class='default-icon'>
+      <svg fill='none' stroke='#666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+        <circle cx='12' cy='8' r='4'/>
+        <path d='M4 20c0-4 3.6-7 8-7s8 3 8 7'/>
+      </svg>
+    </span>
+  </div>
+  <div id='member-dropdown' role='menu'>
+    <!-- Guest -->
+    <div class='dropdown-guest' id='dd-guest'>
+      <p>Belum login. Masuk untuk akses fitur member.</p>
+      <a class='btn-member-area' href='/p/member-area.html'>
+        <svg fill='none' height='16' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'>
+          <path d='M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4'/>
+          <polyline points='10 17 15 12 10 7'/>
+          <line x1='15' x2='3' y1='12' y2='12'/>
+        </svg>
+        Login ke Member Area
+      </a>
+    </div>
+    <!-- Logged in -->
+    <div id='dd-user' style='display:none;'>
+      <div class='dropdown-user-header'>
+        <img alt='Avatar' id='dd-avatar' src=''/>
+        <div class='duh-info'>
+          <div class='duh-name' id='dd-name'>&#8212;</div>
+          <div class='duh-email' id='dd-email'>&#8212;</div>
+        </div>
+      </div>
+      <div class='dropdown-actions'>
+        <a href='https://myaccount.google.com/personal-info' rel='noopener' target='_blank'>
+          <svg height='15' viewBox='0 0 48 48' width='15' xmlns='http://www.w3.org/2000/svg'>
+            <path d='M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917' fill='#ffc107'/>
+          </svg>
+          Edit Profil Google
+        </a>
+        <a href='/p/member-area.html'>
+          <svg fill='none' height='15' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='15' xmlns='http://www.w3.org/2000/svg'>
+            <rect height='7' width='7' x='3' y='3'/><rect height='7' width='7' x='14' y='3'/>
+            <rect height='7' width='7' x='14' y='14'/><rect height='7' width='7' x='3' y='14'/>
+          </svg>
+          Member Area
+        </a>
+        <button class='btn-logout-dd' id='btn-logout-dd'>
+          <svg fill='none' height='15' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='15' xmlns='http://www.w3.org/2000/svg'>
+            <path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/>
+            <polyline points='16 17 21 12 16 7'/>
+            <line x1='21' x2='9' y1='12' y2='12'/>
+          </svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id='ma-toast-notif'/>
+
+<script>
+  /*<![CDATA[*/
+  if (!firebase.apps.length) {
+  firebase.initializeApp({
+    apiKey: "1QRD2UOreItunlrd80cLBqPJu7jI04",
+  });
+  }
+  var auth = firebase.auth();
+  var db   = firebase.firestore();
+  
+  function getSafePhotoURL(photoURL, size) {
+  if (!photoURL) return '';
+  size = size || 's96-c';
+  return photoURL.includes('s96-c') ? photoURL.replace('s96-c', size) : photoURL;
+  }
+  
+  function _navToMs(val) {
+  if (!val) return null;
+  return val.seconds ? val.seconds * 1000 : val;
+  }
+  
+  function _navFormatDate(ms) {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  
+  var _mlBtn  = document.getElementById('member-login');
+  var _mlDrop = document.getElementById('member-dropdown');
+  
+  _mlBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  _mlDrop.classList.toggle('open');
+  });
+  
+  document.addEventListener('click', function(e) {
+  if (!document.getElementById('member-login-wrapper').contains(e.target)) {
+    _mlDrop.classList.remove('open');
+  }
+  });
+  
+  _mlBtn.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    _mlDrop.classList.toggle('open');
+  }
+  });
+  
+  function setDropdownLoggedIn(user) {
+  var photo = getSafePhotoURL(user.photoURL, 's96-c');
+  if (photo) _mlBtn.innerHTML = '<img src="' + photo + '" alt="Avatar">';
+  
+  document.getElementById('dd-guest').style.display = 'none';
+  document.getElementById('dd-user').style.display  = 'block';
+  
+  var ddAvatar = document.getElementById('dd-avatar');
+  if (photo) ddAvatar.src = photo;
+  else ddAvatar.style.display = 'none';
+  
+  document.getElementById('dd-name').textContent  = user.displayName || 'Member';
+  document.getElementById('dd-email').textContent = user.email || '';
+  }
+  
+  function setDropdownGuest() {
+  _mlBtn.innerHTML =
+    '<span class="default-icon">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+        '<circle cx="12" cy="8" r="4"/>' +
+        '<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>' +
+      '</svg>' +
+    '</span>';
+  document.getElementById('dd-guest').style.display = 'block';
+  document.getElementById('dd-user').style.display  = 'none';
+  }
+  
+  window.setNavbarNotifBadge = function(count) {
+  var oldBadge = document.querySelector('#member-login-wrapper .notif-badge');
+  if (oldBadge) oldBadge.remove();
+  if (!count || count <= 0) return;
+  var badge = document.createElement('div');
+  badge.className = 'notif-badge';
+  badge.textContent = count > 9 ? '9+' : count;
+  document.getElementById('member-login-wrapper').appendChild(badge);
+  };
+  
+  window.maDismissToast = function() {
+  var toastEl = document.getElementById('ma-toast-notif');
+  if (!toastEl) return;
+  toastEl.classList.remove('show');
+  clearTimeout(window._maToastTimer);
+  };
+  
+  function navCheckExpiry(user, products) {
+  var webProds = (products || []).filter(function(p) { return p.kategori === 'website'; });
+  var notifs   = [];
+  
+  webProds.forEach(function(p) {
+    var expireMs = _navToMs(p.expireAt);
+    if (!expireMs) return;
+  
+    var diff     = expireMs - Date.now();
+    var diffDays = Math.ceil(diff / 86400000);
+    var nama     = p.namaWebsite || 'Website';
+    var tgl      = _navFormatDate(expireMs);
+    var waMsg    = encodeURIComponent(
+      'Halo Admin, saya ingin memperpanjang masa aktif website *' + nama + '* yang akan berakhir pada ' + tgl + '.' +
+      '\n\nData akun saya:' +
+      '\nNama: '  + (user.displayName || '-') +
+      '\nUID: '   + user.uid +
+      '\nEmail: ' + (user.email || '-') +
+      '\n\nMohon informasi lebih lanjut. Terima kasih!'
+    );
+  
+    if (diff <= 0) {
+      notifs.push({ type: 'danger',  toast: '⚠ "' + nama + '" sudah kedaluwarsa!',         sub: 'Segera perpanjang masa aktif website kamu.' });
+    } else if (diffDays <= 7) {
+      notifs.push({ type: 'danger',  toast: '⚠ "' + nama + '" berakhir ' + diffDays + ' hari lagi!', sub: 'Segera perpanjang sebelum website tidak aktif.' });
+    } else if (diffDays <= 30) {
+      notifs.push({ type: 'warning', toast: '⏳ "' + nama + '" berakhir ' + diffDays + ' hari lagi.', sub: 'Hubungi admin untuk perpanjang masa aktif.' });
+    }
+  });
+  
+  setNavbarNotifBadge(notifs.length);
+  
+  if (notifs.length === 0) return;
+  var storageKey = 'notif_shown_' + user.uid;
+  if (sessionStorage.getItem(storageKey)) return;
+  sessionStorage.setItem(storageKey, '1');
+  
+  var toastEl = document.getElementById('ma-toast-notif');
+  if (!toastEl) return;
+  
+  toastEl.innerHTML = notifs.map(function(n, i) {
+    return '<div class="ma-toast-item ' + n.type + '" style="animation-delay:' + (i * 0.08) + 's">' +
+      '<div class="ma-toast-item-body">' +
+        '<strong>' + n.toast + '</strong>' + n.sub +
+      '</div>' +
+      '<button class="ma-toast-close" onclick="maDismissToast()">&times;</button>' +
+    '</div>';
+  }).join('');
+  
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toastEl.classList.add('show'); });
+  });
+  
+  clearTimeout(window._maToastTimer);
+  window._maToastTimer = setTimeout(maDismissToast, 6000);
+  }
+  
+  firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    setDropdownLoggedIn(user);
+  
+    var userRef = db.collection('users').doc(user.uid);
+    userRef.get().then(function(doc) {
+      if (!doc.exists) {
+        userRef.set({
+          uid: user.uid, email: user.email,
+          displayName: user.displayName, photoURL: user.photoURL, products: []
+        }).catch(function(e) { console.error('Error set user:', e); });
+      } else {
+        var data = doc.data();
+        if (!data.uid) userRef.update({ uid: user.uid }).catch(console.error);
+        if (data.statusauth === true) {
+          var blog1 = document.getElementById('Blog1');
+          if (blog1) blog1.classList.remove('dn-i');
+        }
+        navCheckExpiry(user, data.products || []);
+      }
+    }).catch(function(e) { console.error('Error get user doc:', e); });
+  
+    var nameField  = document.getElementById('name');
+    var emailField = document.getElementById('email');
+    if (nameField)  nameField.value  = user.displayName || '';
+    if (emailField) emailField.value = user.email || '';
+  
+  } else {
+    setDropdownGuest();
+    setNavbarNotifBadge(0);
+    maDismissToast();
+    Object.keys(sessionStorage).forEach(function(key) {
+      if (key.indexOf('notif_shown_') === 0) sessionStorage.removeItem(key);
+    });
+  }
+  });
+  
+  function doLogout() {
+  firebase.auth().signOut().catch(function(e) { console.error(e); });
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('btn-logout-dd');
+  if (btn) btn.addEventListener('click', doLogout);
+  });
+  /*]]>*/
+</script>
