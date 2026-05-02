@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION : 5 * 60 * 1000,  // 5 menit
+    CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
     FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
     RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
     ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
@@ -109,18 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CACHE HELPER
   // ============================================================
   function getCached(key) {
-    try {
-      const item = localStorage.getItem(key);
-      if (!item) return null;
-      const data = JSON.parse(item);
-      if (Date.now() - data.timestamp > config.CACHE_DURATION) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return data.value;
-    } catch {
-      return null;
-    }
+    return null; // disable cache sementara untuk debug
   }
 
   function setCache(key, value) {
@@ -180,14 +169,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Trigger sekali saat ada aktivitas scroll pertama
-  window.addEventListener('scroll', function onFirstScroll() {
-    window.removeEventListener('scroll', onFirstScroll);
-    loadAllFeeds();
-  }, { passive: true });
-
-  // Fallback: tetap load setelah 3 detik jika user tidak scroll
-  setTimeout(loadAllFeeds, 3000);
+// Load langsung saat browser idle, tanpa tunggu scroll
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
+} else {
+  setTimeout(loadAllFeeds, 300); // fallback browser lama
+}
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
