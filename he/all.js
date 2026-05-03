@@ -100,32 +100,33 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   // HELPER: Render List
   // ============================================================  
-  const label = item.source.startsWith('www.') ? '' : item.source.split('.')[0];
   function renderList(items) {
     if (!items.length) return '<p>Tidak ada konten.</p>';
     return '<ul style="list-style:none;padding:0;margin:0;">' +
-      items.map(item => `
-        <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
-          <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
-            <img src="${item.img}"
-               alt="${escapeHTML(item.title)}"
-               style="width:70px;height:50px;object-fit:cover;border-radius:4px;"
-               onerror="this.src='https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'"/>
-          </a>
-          <div style="flex:1;">
-            <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;">
-              <a href="${escapeHTML(item.link)}" target="_blank">
-                ${escapeHTML(item.title)}
-              </a>
-            </h3>
-            <small style="font-size:11px;display:flex;gap:6px;align-items:center;">
-              <time datetime="${escapeHTML(item.rawDate)}">${escapeHTML(item.date)}</time>
-              <span style="background:#e8f0fe;color:#1a73e8;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;">
-                ${escapeHTML(label)}
-              </span>
-            </small>
-          </div>
-        </li>`).join('') +
+      items.map(item => {
+        const label = item.source.startsWith('www.') ? 'harianexpress' : item.source.split('.')[0];
+        return `
+          <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
+            <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
+              <img src="${item.img}"
+                 alt="${escapeHTML(item.title)}"
+                 style="width:70px;height:50px;object-fit:cover;border-radius:4px;"
+                 loading="lazy"
+                 onerror="this.src='${config.PLACEHOLDER}'"/>
+            </a>
+            <div style="flex:1;">
+              <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;">
+                <a href="${escapeHTML(item.link)}" target="_blank">${escapeHTML(item.title)}</a>
+              </h3>
+              <small style="font-size:11px;display:flex;gap:6px;align-items:center;">
+                <time datetime="${escapeHTML(item.rawDate)}">${escapeHTML(item.date)}</time>
+                <span style="background:#e8f0fe;color:#1a73e8;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;">
+                  ${escapeHTML(label)}
+                </span>
+              </small>
+            </div>
+          </li>`;
+      }).join('') +
       '</ul>';
   }
 
