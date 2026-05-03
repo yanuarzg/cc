@@ -32,6 +32,26 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
+  // DNS PRECONNECT (jalankan sekali saat load)
+  // ============================================================
+  function addPreconnect(domains) {
+    const head = document.head;
+    domains.forEach(domain => {
+      if (!document.querySelector(`link[href*="${domain}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = `https://${domain}`;
+        link.crossOrigin = 'anonymous';
+        head.appendChild(link);
+        const dnsLink = document.createElement('link');
+        dnsLink.rel = 'dns-prefetch';
+        dnsLink.href = `https://${domain}`;
+        head.appendChild(dnsLink);
+      }
+    });
+  }
+
+  // ============================================================
   // CONFIG
   // ============================================================
   const config = {
@@ -123,27 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.clear();
       }
     }
-  }
-
-  // ============================================================
-  // DNS PRECONNECT (jalankan sekali saat load)
-  // ============================================================
-  function addPreconnect(domains) {
-    const head = document.head;
-    domains.forEach(domain => {
-      if (!document.querySelector(`link[href*="${domain}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preconnect';
-        link.href = `https://${domain}`;
-        link.crossOrigin = 'anonymous';
-        head.appendChild(link);
-
-        const dnsLink = document.createElement('link');
-        dnsLink.rel = 'dns-prefetch';
-        dnsLink.href = `https://${domain}`;
-        head.appendChild(dnsLink);
-      }
-    });
   }
 
   // ============================================================
