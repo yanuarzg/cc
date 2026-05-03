@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!items.length) return '<p>Tidak ada konten.</p>';
     return '<ul style="list-style:none;padding:0;margin:0;">' +
       items.map(item => {
-        const label = item.source.startsWith('www.') ? 'harianexpress' : item.source.split('.')[0];
+        const label = item.source.startsWith('www.') ? 'NEWS' : item.source.split('.')[0];
         return `
           <li style="display:flex;gap:16px;margin-bottom:15px;align-items:center;">
             <a href="${escapeHTML(item.link)}" aria-label="${escapeHTML(item.title)}" class="post-img">
