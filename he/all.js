@@ -115,10 +115,10 @@ document.addEventListener("DOMContentLoaded", function () {
                  onerror="this.src='${config.PLACEHOLDER}'"/>
             </a>
             <div style="flex:1;">
-              <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.5;">
+              <h3 class="jl_fe_title jl_txt_2row" style="text-decoration:none;font-size:18px;display:block;line-height:1.25;">
                 <a href="${escapeHTML(item.link)}" target="_blank">${escapeHTML(item.title)}</a>
               </h3>
-              <small style="font-size:11px;display:flex;gap:6px;align-items:center;">
+              <small style="font-size:11px;display:flex;gap:6px;align-items:center;margin-top:0.5rem;">
                 <time datetime="${escapeHTML(item.rawDate)}">${escapeHTML(item.date)}</time>
                 <span style="background:#e8f0fe;color:#1a73e8;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;">
                   ${escapeHTML(label)}
