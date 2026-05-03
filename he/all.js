@@ -100,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   // HELPER: Render List
   // ============================================================  
+  const label = item.source.startsWith('www.') ? '' : item.source.split('.')[0];
   function renderList(items) {
     if (!items.length) return '<p>Tidak ada konten.</p>';
     return '<ul style="list-style:none;padding:0;margin:0;">' +
@@ -117,8 +118,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 ${escapeHTML(item.title)}
               </a>
             </h3>
-            <small style="font-size:11px;">
-              <time datetime="${item.rawDate}">${item.date}</time>
+            <small style="font-size:11px;display:flex;gap:6px;align-items:center;">
+              <time datetime="${escapeHTML(item.rawDate)}">${escapeHTML(item.date)}</time>
+              <span style="background:#e8f0fe;color:#1a73e8;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;">
+                ${escapeHTML(label)}
+              </span>
             </small>
           </div>
         </li>`).join('') +
