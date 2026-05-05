@@ -58,8 +58,14 @@ document.addEventListener("DOMContentLoaded", function () {
     CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
     FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
     RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
-    ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
+    ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>',
+    PLACEHOLDER    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
   };
+
+  // ============================================================
+  // REQUEST DEDUPLICATION TRACKER
+  // ============================================================
+  const pendingRequests = new Map();
 
   // ============================================================
   // HELPER: Escape HTML
@@ -217,11 +223,9 @@ if ('requestIdleCallback' in window) {
   // 'no-cache' akan tetap memanfaatkan cache browser via 304 Not Modified
   // jika konten tidak berubah, tapi selalu re-validasi ke server.
   // ============================================================
-  async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
-    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
-    const cached = getCached(cacheKey);
-    if (cached) return cached;
 
+  // Core fetch function (actual implementation)
+  async function fetchWPCore(source, catId, count, offset, container, attempt = 1) {
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
             + `&orderby=date&order=desc`
@@ -236,7 +240,7 @@ if ('requestIdleCallback' in window) {
       const res = await fetch(url, {
         signal: controller.signal,
         mode: 'cors',
-        cache: 'no-cache' // FIX: was 'force-cache' — caused stale articles after refresh
+        cache: 'no-cache'
       });
       clearTimeout(timeout);
 
@@ -254,7 +258,7 @@ if ('requestIdleCallback' in window) {
           const mediaUrl = `https://${source}/wp-json/wp/v2/media`
                          + `?include=${uniqueIds.join(',')}`
                          + `&_fields=id,source_url,media_details`;
-          const mediaRes = await fetch(mediaUrl, { cache: 'no-cache' }); // FIX: was 'force-cache'
+          const mediaRes = await fetch(mediaUrl, { cache: 'no-cache' });
           const mediaData = await mediaRes.json();
           mediaData.forEach(m => {
             mediaMap[m.id] = m.media_details?.sizes?.medium?.source_url
@@ -270,22 +274,51 @@ if ('requestIdleCallback' in window) {
         rawDate : post.date,
         date    : new Date(post.date).toLocaleDateString('id-ID'),
         source  : source,
-        img     : extractWPThumbnail(post, mediaMap) || 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
+        img     : extractWPThumbnail(post, mediaMap) || config.PLACEHOLDER
       }));
 
-      setCache(cacheKey, mapped);
       return mapped;
 
     } catch (err) {
       clearTimeout(timeout);
-      // Retry 1x otomatis setelah RETRY_DELAY
       if (attempt < 2) {
         console.warn(`WP fetch gagal (${source}), retry dalam ${config.RETRY_DELAY / 1000}s…`);
         await new Promise(r => setTimeout(r, config.RETRY_DELAY));
-        return fetchWPOptimized(source, catId, count, offset, container, 2);
+        return fetchWPCore(source, catId, count, offset, container, 2);
       }
       console.error(`WP fetch failed (${source}):`, err.message);
-      return []; // kembalikan array kosong, jangan tulis error ke container
+      return [];
+    }
+  }
+
+  // Wrapper with deduplication
+  async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
+    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
+    
+    // Check cache first
+    const cached = getCached(cacheKey);
+    if (cached) return cached;
+
+    // Check for pending request
+    if (pendingRequests.has(cacheKey)) {
+      console.log(`Reusing pending request for: ${source}`);
+      return pendingRequests.get(cacheKey);
+    }
+
+    // Create new request
+    const promise = fetchWPCore(source, catId, count, offset, container, attempt);
+    pendingRequests.set(cacheKey, promise);
+
+    try {
+      const result = await promise;
+      // Cache successful result
+      if (result && result.length > 0) {
+        setCache(cacheKey, result);
+      }
+      return result;
+    } finally {
+      // Clean up after request completes (success or fail)
+      pendingRequests.delete(cacheKey);
     }
   }
 
@@ -320,39 +353,62 @@ if ('requestIdleCallback' in window) {
   // - Retry 1x otomatis jika timeout/error
   // - Tidak menulis error langsung ke container (caller yang handle)
   // ============================================================
+  // Store pending blogger callbacks
+  const pendingBloggerRequests = new Map();
+
   function loadBloggerOptimized(source, category, count, startIndex, callback, container, attempt = 1) {
     const cacheKey = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
+    
+    // Check cache first
     const cached = getCached(cacheKey);
-
     if (cached) {
       callback(cached);
       return;
     }
 
+    // Check for pending request
+    if (pendingBloggerRequests.has(cacheKey)) {
+      console.log(`🔄 Reusing pending Blogger request for: ${source}`);
+      pendingBloggerRequests.get(cacheKey).push(callback);
+      return;
+    }
+
+    // Initialize pending callbacks array
+    pendingBloggerRequests.set(cacheKey, [callback]);
+
     const cbName = 'blgCb_' + Math.random().toString(36).slice(2);
 
     // Timeout manual untuk JSONP
     const timer = setTimeout(() => {
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
+      cleanupJSONP(cbName);
+      
+      // Get all pending callbacks
+      const callbacks = pendingBloggerRequests.get(cacheKey) || [];
+      pendingBloggerRequests.delete(cacheKey);
 
       if (attempt < 2) {
         console.warn(`Blogger JSONP timeout (${source}), retry…`);
         setTimeout(() => {
-          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
+          // Retry with first callback, others will be queued again
+          if (callbacks.length > 0) {
+            loadBloggerOptimized(source, category, count, startIndex, callbacks[0], container, 2);
+            // Re-add other callbacks
+            for (let i = 1; i < callbacks.length; i++) {
+              setTimeout(() => {
+                loadBloggerOptimized(source, category, count, startIndex, callbacks[i], container, 2);
+              }, 100);
+            }
+          }
         }, config.RETRY_DELAY);
       } else {
         console.error(`Blogger fetch failed (${source}): timeout`);
-        callback([]); // kembalikan kosong, jangan tulis error ke container
+        callbacks.forEach(cb => cb([]));
       }
     }, config.FETCH_TIMEOUT);
 
     window[cbName] = function (data) {
       clearTimeout(timer);
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
+      cleanupJSONP(cbName);
 
       const entries = data.feed.entry || [];
       const mapped = entries.map(entry => ({
@@ -363,11 +419,19 @@ if ('requestIdleCallback' in window) {
         source  : source,
         img     : entry.media$thumbnail
                     ? entry.media$thumbnail.url.replace(/\/s\d+-c\//, '/s320-c/')
-                    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
+                    : config.PLACEHOLDER
       }));
 
-      setCache(cacheKey, mapped);
-      callback(mapped);
+      // Cache successful result
+      if (mapped.length > 0) {
+        setCache(cacheKey, mapped);
+      }
+
+      // Get all pending callbacks and execute them
+      const callbacks = pendingBloggerRequests.get(cacheKey) || [];
+      pendingBloggerRequests.delete(cacheKey);
+      
+      callbacks.forEach(cb => cb(mapped));
     };
 
     const labelPath = category ? `/-/${encodeURIComponent(category)}/` : '/';
@@ -376,21 +440,36 @@ if ('requestIdleCallback' in window) {
     script.src = `https://${source}/feeds/posts/default${labelPath}?alt=json&max-results=${count}&start-index=${startIndex}&callback=${cbName}`;
     script.onerror = () => {
       clearTimeout(timer);
-      const scriptEl = document.getElementById(cbName);
-      if (scriptEl) scriptEl.remove();
-      delete window[cbName];
+      cleanupJSONP(cbName);
+      
+      const callbacks = pendingBloggerRequests.get(cacheKey) || [];
+      pendingBloggerRequests.delete(cacheKey);
 
       if (attempt < 2) {
         console.warn(`Blogger JSONP error (${source}), retry…`);
         setTimeout(() => {
-          loadBloggerOptimized(source, category, count, startIndex, callback, container, 2);
+          if (callbacks.length > 0) {
+            loadBloggerOptimized(source, category, count, startIndex, callbacks[0], container, 2);
+            for (let i = 1; i < callbacks.length; i++) {
+              setTimeout(() => {
+                loadBloggerOptimized(source, category, count, startIndex, callbacks[i], container, 2);
+              }, 100);
+            }
+          }
         }, config.RETRY_DELAY);
       } else {
         console.error(`Blogger fetch failed (${source}): script error`);
-        callback([]); // kembalikan kosong, jangan tulis error ke container
+        callbacks.forEach(cb => cb([]));
       }
     };
     document.body.appendChild(script);
+  }
+
+  // Helper function to cleanup JSONP
+  function cleanupJSONP(cbName) {
+    const scriptEl = document.getElementById(cbName);
+    if (scriptEl) scriptEl.remove();
+    if (window[cbName]) delete window[cbName];
   }
 
   // ============================================================
