@@ -133,8 +133,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   // CACHE HELPER
   // ============================================================
+  const _pending = new Map();
+
   function getCached(key) {
-    return null; // disable cache sementara untuk debug
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Date.now() - data.timestamp > config.CACHE_DURATION) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return data.value;
+    } catch {
+      return null;
+    }
   }
 
   function setCache(key, value) {
@@ -221,7 +234,18 @@ if ('requestIdleCallback' in window) {
     const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
     const cached = getCached(cacheKey);
     if (cached) return cached;
-
+  
+    if (_pending.has(cacheKey)) return _pending.get(cacheKey);
+  
+    const promise = _doFetchWP(source, catId, count, offset, container, attempt)
+      .finally(() => _pending.delete(cacheKey));
+    _pending.set(cacheKey, promise);
+    return promise;
+  }
+  
+  async function _doFetchWP(source, catId, count, offset, container, attempt = 1) {
+    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
+  
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
             + `&orderby=date&order=desc`
