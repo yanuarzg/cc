@@ -29,6 +29,16 @@
   });
 })();
 
+// ============================================================
+// DOMAIN GROUPS — definisi sekali, pakai di semua widget
+// ============================================================
+const DOMAIN_GROUPS = {
+  'all'  : 'news.imnu.biz.id, banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, bola.harianexpress.com, depok.harianexpress.com, edu.harianexpress.com, en.harianexpress.com, entertainment.harianexpress.com, finance.harianexpress.com, foto.harianexpress.com, health.harianexpress.com, humaniora.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, lifestyle.harianexpress.com, nature.harianexpress.com, olahraga.harianexpress.com, otomotif.harianexpress.com, properti.harianexpress.com, tangsel.harianexpress.com, tekno.harianexpress.com, travel.harianexpress.com, umkm.harianexpress.com, www.harianexpress.com',
+
+  'daerah' : 'banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, depok.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, tangsel.harianexpress.com',
+
+};
+
 document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
@@ -523,8 +533,9 @@ if ('requestIdleCallback' in window) {
   // Fetch selalu dari offset=0, ambil lebih banyak agar slice valid.
   // ============================================================
   window.loadMultiWP = async function(container) {
-    const sourceAttr = container.getAttribute('data-sources');
-    if (!sourceAttr) return;
+    // Resolve alias grup jika data-sources berisi nama grup
+    const raw = container.getAttribute('data-sources') || '';
+    const sourceAttr = DOMAIN_GROUPS[raw.trim()] || raw;
     const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
     const category  = container.getAttribute('data-category') || '';
     const total     = parseInt(container.getAttribute('data-items')) || 10;
@@ -585,8 +596,9 @@ if ('requestIdleCallback' in window) {
   // Fetch selalu dari start-index=1, ambil lebih banyak agar slice valid.
   // ============================================================
   window.loadMultiBlogger = function(container) {
-    const sourceAttr = container.getAttribute('data-sources');
-    if (!sourceAttr) return;
+    // Resolve alias grup jika data-sources berisi nama grup
+    const raw = container.getAttribute('data-sources') || '';
+    const sourceAttr = DOMAIN_GROUPS[raw.trim()] || raw;
     const sources       = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
     const category      = container.getAttribute('data-category') || '';
     const total         = parseInt(container.getAttribute('data-items')) || 10;
