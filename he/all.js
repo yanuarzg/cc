@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION: 30 * 1000, // 30 detik
+    CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
     FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
     RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
     ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
@@ -133,21 +133,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   // CACHE HELPER
   // ============================================================
-  const _pending = new Map();
-
   function getCached(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      if (Date.now() - data.timestamp > config.CACHE_DURATION) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return data.value;
-    } catch {
-      return null;
-    }
+    return null; // disable cache sementara untuk debug
   }
 
   function setCache(key, value) {
@@ -167,68 +154,31 @@ document.addEventListener("DOMContentLoaded", function () {
   // LAZY LOAD — trigger on first scroll, fallback 3 detik
   // Tidak perlu menunggu container masuk ke layar
   // ============================================================
-  const LOADER_MAP = {
-    'recent-wp'        : 'loadSingleWP',
-    'recent-blg'       : 'loadSingleBlogger',
-    'recent-wp-multi'  : 'loadMultiWP',
-    'recent-blg-multi' : 'loadMultiBlogger',
-  };
-  
   function loadAllFeeds() {
     const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
     document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return;
+      if (container.dataset.loaded) return; // skip jika sudah dimuat
       container.dataset.loaded = '1';
-  
-      const loaderKey = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
-      const loaderName = LOADER_MAP[loaderKey];
-  
+
+      const loader = container.dataset.loader;
+
+      // Tampilkan skeleton segera
       container.innerHTML = renderSkeleton();
       container.setAttribute('aria-busy', 'true');
-  
-      if (loaderName && window[loaderName]) {
-        window[loaderName](container);
+
+      if (loader && window[loader]) {
+        window[loader](container);
+        delete container.dataset.loader;
       }
     });
   }
 
-  // Load semua feed langsung setelah DOM ready, tanpa tunggu apapun
-  setTimeout(loadAllFeeds, 0);
-  setTimeout(loadAllFeeds, 500);
-  setTimeout(loadAllFeeds, 1500);
-
-  // Rechecker — retry widget yang sudah loaded tapi masih kosong/skeleton
-  const recheck = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const container = entry.target;
-  
-      // Cek apakah masih skeleton (ul tanpa li berisi artikel)
-      const ul = container.querySelector('ul');
-      const hasArticles = ul && ul.querySelectorAll('li a').length > 0;
-      if (hasArticles) {
-        recheck.unobserve(container); // sudah ada artikel, stop observe
-        return;
-      }
-  
-      // Reset dan load ulang
-      console.warn('Recheck retry:', container.className);
-      delete container.dataset.loaded;
-      const loaderKey = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
-      const loaderName = LOADER_MAP[loaderKey];
-      container.innerHTML = renderSkeleton();
-      container.setAttribute('aria-busy', 'true');
-      if (loaderName && window[loaderName]) {
-        window[loaderName](container);
-        container.dataset.loaded = '1';
-      }
-      recheck.unobserve(container);
-    });
-  }, { rootMargin: '100px' });
-  
-  // Observe semua widget untuk recheck
-  document.querySelectorAll('.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi')
-    .forEach(c => recheck.observe(c));
+// Load langsung saat browser idle, tanpa tunggu scroll
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
+} else {
+  setTimeout(loadAllFeeds, 300); // fallback browser lama
+}
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
@@ -271,18 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
     const cached = getCached(cacheKey);
     if (cached) return cached;
-  
-    if (_pending.has(cacheKey)) return _pending.get(cacheKey);
-  
-    const promise = _doFetchWP(source, catId, count, offset, container, attempt)
-      .finally(() => _pending.delete(cacheKey));
-    _pending.set(cacheKey, promise);
-    return promise;
-  }
-  
-  async function _doFetchWP(source, catId, count, offset, container, attempt = 1) {
-    const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
-  
+
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
             + `&orderby=date&order=desc`
@@ -472,6 +411,10 @@ document.addEventListener("DOMContentLoaded", function () {
     container.removeAttribute('aria-busy');
   };
 
+  document.querySelectorAll('.recent-wp').forEach(container => {
+    container.dataset.loader = 'loadSingleWP';
+  });
+
   // ============================================================
   // SINGLE BLOGGER
   // ============================================================
@@ -489,6 +432,10 @@ document.addEventListener("DOMContentLoaded", function () {
       container.removeAttribute('aria-busy');
     }, container);
   };
+
+  document.querySelectorAll('.recent-blg').forEach(container => {
+    container.dataset.loader = 'loadSingleBlogger';
+  });
 
   // ============================================================
   // MULTI-SOURCE WP
@@ -548,6 +495,10 @@ document.addEventListener("DOMContentLoaded", function () {
     container.removeAttribute('aria-busy');
   };
 
+  document.querySelectorAll('.recent-wp-multi').forEach(container => {
+    container.dataset.loader = 'loadMultiWP';
+  });
+
   // ============================================================
   // MULTI-SOURCE BLOGGER
   // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
@@ -598,6 +549,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }, container);
     });
   };
+
+  document.querySelectorAll('.recent-blg-multi').forEach(container => {
+    container.dataset.loader = 'loadMultiBlogger';
+  });
 
 });
 
