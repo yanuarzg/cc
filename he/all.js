@@ -187,7 +187,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Load semua feed langsung setelah DOM ready, tanpa tunggu apapun
-setTimeout(loadAllFeeds, 0);
+  setTimeout(loadAllFeeds, 0);
+  setTimeout(loadAllFeeds, 500);
+  setTimeout(loadAllFeeds, 1500);
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
