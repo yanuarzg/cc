@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
+    CACHE_DURATION: 30 * 1000, // 30 detik
     FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
     RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
     ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>'
