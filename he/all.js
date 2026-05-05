@@ -186,12 +186,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-// Load langsung saat browser idle, tanpa tunggu scroll
-if ('requestIdleCallback' in window) {
-  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
-} else {
-  setTimeout(loadAllFeeds, 300); // fallback browser lama
-}
+  // Load semua feed langsung setelah DOM ready, tanpa tunggu apapun
+setTimeout(loadAllFeeds, 0);
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
