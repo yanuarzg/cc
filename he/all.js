@@ -197,6 +197,39 @@ document.addEventListener("DOMContentLoaded", function () {
   setTimeout(loadAllFeeds, 500);
   setTimeout(loadAllFeeds, 1500);
 
+  // Rechecker — retry widget yang sudah loaded tapi masih kosong/skeleton
+  const recheck = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const container = entry.target;
+  
+      // Cek apakah masih skeleton (ul tanpa li berisi artikel)
+      const ul = container.querySelector('ul');
+      const hasArticles = ul && ul.querySelectorAll('li a').length > 0;
+      if (hasArticles) {
+        recheck.unobserve(container); // sudah ada artikel, stop observe
+        return;
+      }
+  
+      // Reset dan load ulang
+      console.warn('Recheck retry:', container.className);
+      delete container.dataset.loaded;
+      const loaderKey = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
+      const loaderName = LOADER_MAP[loaderKey];
+      container.innerHTML = renderSkeleton();
+      container.setAttribute('aria-busy', 'true');
+      if (loaderName && window[loaderName]) {
+        window[loaderName](container);
+        container.dataset.loaded = '1';
+      }
+      recheck.unobserve(container);
+    });
+  }, { rootMargin: '100px' });
+  
+  // Observe semua widget untuk recheck
+  document.querySelectorAll('.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi')
+    .forEach(c => recheck.observe(c));
+
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
   // Prioritas: _embedded (satu request) → batch media map → placeholder
