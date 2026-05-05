@@ -167,21 +167,27 @@ document.addEventListener("DOMContentLoaded", function () {
   // LAZY LOAD — trigger on first scroll, fallback 3 detik
   // Tidak perlu menunggu container masuk ke layar
   // ============================================================
+  const LOADER_MAP = {
+    'recent-wp'        : 'loadSingleWP',
+    'recent-blg'       : 'loadSingleBlogger',
+    'recent-wp-multi'  : 'loadMultiWP',
+    'recent-blg-multi' : 'loadMultiBlogger',
+  };
+  
   function loadAllFeeds() {
     const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
     document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return; // skip jika sudah dimuat
+      if (container.dataset.loaded) return;
       container.dataset.loaded = '1';
-
-      const loader = container.dataset.loader;
-
-      // Tampilkan skeleton segera
+  
+      const loaderKey = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
+      const loaderName = LOADER_MAP[loaderKey];
+  
       container.innerHTML = renderSkeleton();
       container.setAttribute('aria-busy', 'true');
-
-      if (loader && window[loader]) {
-        window[loader](container);
-        delete container.dataset.loader;
+  
+      if (loaderName && window[loaderName]) {
+        window[loaderName](container);
       }
     });
   }
@@ -433,10 +439,6 @@ document.addEventListener("DOMContentLoaded", function () {
     container.removeAttribute('aria-busy');
   };
 
-  document.querySelectorAll('.recent-wp').forEach(container => {
-    container.dataset.loader = 'loadSingleWP';
-  });
-
   // ============================================================
   // SINGLE BLOGGER
   // ============================================================
@@ -454,10 +456,6 @@ document.addEventListener("DOMContentLoaded", function () {
       container.removeAttribute('aria-busy');
     }, container);
   };
-
-  document.querySelectorAll('.recent-blg').forEach(container => {
-    container.dataset.loader = 'loadSingleBlogger';
-  });
 
   // ============================================================
   // MULTI-SOURCE WP
@@ -517,10 +515,6 @@ document.addEventListener("DOMContentLoaded", function () {
     container.removeAttribute('aria-busy');
   };
 
-  document.querySelectorAll('.recent-wp-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiWP';
-  });
-
   // ============================================================
   // MULTI-SOURCE BLOGGER
   // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
@@ -571,10 +565,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }, container);
     });
   };
-
-  document.querySelectorAll('.recent-blg-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiBlogger';
-  });
 
 });
 
