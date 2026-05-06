@@ -16,7 +16,6 @@ const DOMAIN_GROUPS = {
   'all'  : 'banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, bola.harianexpress.com, depok.harianexpress.com, edu.harianexpress.com, en.harianexpress.com, entertainment.harianexpress.com, finance.harianexpress.com, foto.harianexpress.com, health.harianexpress.com, humaniora.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, lifestyle.harianexpress.com, nature.harianexpress.com, olahraga.harianexpress.com, otomotif.harianexpress.com, properti.harianexpress.com, tangsel.harianexpress.com, tekno.harianexpress.com, travel.harianexpress.com, umkm.harianexpress.com, www.harianexpress.com',
 
   'daerah' : 'banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, depok.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, tangsel.harianexpress.com',
-
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -45,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
+    CACHE_DURATION : 5 * 60 * 1000,  // 5 menit — lebih baik untuk cache hit
     FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
     RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
     ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>',
@@ -56,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // REQUEST DEDUPLICATION TRACKER
   // ============================================================
   const pendingRequests = new Map();
+  const pendingBloggerRequests = new Map();
 
   // ============================================================
   // HELPER: Escape HTML
@@ -158,44 +158,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // LAZY LOAD — trigger on first scroll, fallback 3 detik
-  // Tidak perlu menunggu container masuk ke layar
-  // ============================================================
-  const LOADER_MAP = {
-    'recent-wp'        : 'loadSingleWP',
-    'recent-blg'       : 'loadSingleBlogger',
-    'recent-wp-multi'  : 'loadMultiWP',
-    'recent-blg-multi' : 'loadMultiBlogger',
-  };
-  
-  function loadAllFeeds() {
-    document.querySelectorAll('.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi')
-      .forEach(function(container) {
-        if (container.dataset.loaded) return;
-        container.dataset.loaded = '1';
-        const loaderKey  = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
-        const loaderName = LOADER_MAP[loaderKey];
-        container.innerHTML = renderSkeleton();
-        container.setAttribute('aria-busy', 'true');
-        if (loaderName && window[loaderName]) {
-          window[loaderName](container);
-        }
-      });
-  }
-  
-  setTimeout(loadAllFeeds, 0);
-  setTimeout(loadAllFeeds, 800);
-
-  // ============================================================
-  // HELPER: Ekstrak thumbnail dari satu post WP
-  // Prioritas: _embedded (satu request) → batch media map → placeholder
+  // EXTRACT WORDPRESS THUMBNAIL
   // ============================================================
   function extractWPThumbnail(post, mediaMap) {
-    // Prioritas 1: _embedded (paling reliable, tidak perlu request kedua)
     try {
       const embedded = post._embedded?.['wp:featuredmedia']?.[0];
       if (embedded) {
-        // Coba ukuran medium dulu, fallback ke full
         return embedded.media_details?.sizes?.medium?.source_url
             || embedded.media_details?.sizes?.thumbnail?.source_url
             || embedded.source_url
@@ -203,28 +171,15 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch { /* lanjut ke fallback */ }
 
-    // Prioritas 2: batch media map (dari request terpisah)
     if (post.featured_media && mediaMap[post.featured_media]) {
       return mediaMap[post.featured_media];
     }
-
     return null;
   }
 
   // ============================================================
-  // WORDPRESS OPTIMIZED FETCH
-  // - Timeout dari config.FETCH_TIMEOUT (20 detik)
-  // - Retry 1x otomatis jika timeout/network error
-  // - Tidak menulis error langsung ke container (caller yang handle)
-  //
-  // FIX v1.4: Ganti cache: 'force-cache' → 'no-cache'
-  // 'force-cache' menyebabkan browser mengabaikan artikel baru karena
-  // menggunakan HTTP cache lama bahkan setelah halaman di-refresh.
-  // 'no-cache' akan tetap memanfaatkan cache browser via 304 Not Modified
-  // jika konten tidak berubah, tapi selalu re-validasi ke server.
+  // WORDPRESS OPTIMIZED FETCH (direct ke WP REST API)
   // ============================================================
-
-  // Core fetch function (actual implementation)
   async function fetchWPCore(source, catId, count, offset, container, attempt = 1) {
     let url = `https://${source}/wp-json/wp/v2/posts`
             + `?per_page=${count}&offset=${offset}`
@@ -295,104 +250,61 @@ document.addEventListener("DOMContentLoaded", function () {
   async function fetchWPOptimized(source, catId, count, offset, container, attempt = 1) {
     const cacheKey = `wp_${source}_${catId || 'all'}_${count}_${offset}`;
     
-    // Check cache first
     const cached = getCached(cacheKey);
     if (cached) return cached;
 
-    // Check for pending request
     if (pendingRequests.has(cacheKey)) {
       console.log(`Reusing pending request for: ${source}`);
       return pendingRequests.get(cacheKey);
     }
 
-    // Create new request
     const promise = fetchWPCore(source, catId, count, offset, container, attempt);
     pendingRequests.set(cacheKey, promise);
 
     try {
       const result = await promise;
-      // Cache successful result
       if (result && result.length > 0) {
         setCache(cacheKey, result);
       }
       return result;
     } finally {
-      // Clean up after request completes (success or fail)
       pendingRequests.delete(cacheKey);
     }
   }
 
-  async function fetchWPCategory(source, categoryName) {
-    const cacheKey = `wp_cat_${source}_${categoryName}`;
-    const cached = getCached(cacheKey);
-    if (cached) return cached;
-
-    try {
-      const res = await fetch(
-        `https://${source}/wp-json/wp/v2/categories?search=${encodeURIComponent(categoryName)}&per_page=5&_fields=id,slug,name`,
-        { cache: 'no-cache' } // FIX: was 'force-cache'
-      );
-      const cats = await res.json();
-      if (!cats.length) return null;
-
-      const bySlug = cats.find(c => c.slug === categoryName.toLowerCase());
-      const byName = cats.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
-      const catId = (bySlug || byName || cats[0]).id;
-
-      setCache(cacheKey, catId);
-      return catId;
-    } catch {
-      return null;
-    }
-  }
-
   // ============================================================
-  // BLOGGER OPTIMIZED
-  // - Timeout JSONP 20 detik (script tag tidak punya AbortController,
-  //   pakai setTimeout untuk cleanup manual)
-  // - Retry 1x otomatis jika timeout/error
-  // - Tidak menulis error langsung ke container (caller yang handle)
+  // BLOGGER OPTIMIZED FETCH
   // ============================================================
-  // Store pending blogger callbacks
-  const pendingBloggerRequests = new Map();
-
   function loadBloggerOptimized(source, category, count, startIndex, callback, container, attempt = 1) {
     const cacheKey = `blg_${source}_${category || 'all'}_${count}_${startIndex}`;
     
-    // Check cache first
     const cached = getCached(cacheKey);
     if (cached) {
       callback(cached);
       return;
     }
 
-    // Check for pending request
     if (pendingBloggerRequests.has(cacheKey)) {
-      console.log(`🔄 Reusing pending Blogger request for: ${source}`);
+      console.log(`Reusing pending Blogger request for: ${source}`);
       pendingBloggerRequests.get(cacheKey).push(callback);
       return;
     }
 
-    // Initialize pending callbacks array
     pendingBloggerRequests.set(cacheKey, [callback]);
 
     const cbName = 'blgCb_' + Math.random().toString(36).slice(2);
 
-    // Timeout manual untuk JSONP
     const timer = setTimeout(() => {
       cleanupJSONP(cbName);
       
-      // Get all pending callbacks
       const callbacks = pendingBloggerRequests.get(cacheKey) || [];
       pendingBloggerRequests.delete(cacheKey);
 
       if (attempt < 2) {
         console.warn(`Blogger JSONP timeout (${source}), retry…`);
         setTimeout(() => {
-          // Retry with first callback, others will be queued again
           if (callbacks.length > 0) {
             loadBloggerOptimized(source, category, count, startIndex, callbacks[0], container, 2);
-            // Re-add other callbacks
             for (let i = 1; i < callbacks.length; i++) {
               setTimeout(() => {
                 loadBloggerOptimized(source, category, count, startIndex, callbacks[i], container, 2);
@@ -422,12 +334,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     : config.PLACEHOLDER
       }));
 
-      // Cache successful result
       if (mapped.length > 0) {
         setCache(cacheKey, mapped);
       }
 
-      // Get all pending callbacks and execute them
       const callbacks = pendingBloggerRequests.get(cacheKey) || [];
       pendingBloggerRequests.delete(cacheKey);
       
@@ -465,7 +375,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(script);
   }
 
-  // Helper function to cleanup JSONP
   function cleanupJSONP(cbName) {
     const scriptEl = document.getElementById(cbName);
     if (scriptEl) scriptEl.remove();
@@ -473,7 +382,180 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============================================================
-  // SINGLE WP
+  // FEED MANAGER: Mengelompokkan widget multi-source WP
+  // ============================================================
+  const FeedManager = {
+    wpGroups: new Map(),
+
+    // Resolusi domain groups
+    resolveDomains(value) {
+      if (DOMAIN_GROUPS[value.trim()]) {
+        return DOMAIN_GROUPS[value.trim()].split(',').map(s => s.trim());
+      }
+      return value.split(',').map(s => s.trim()).filter(Boolean);
+    },
+
+    registerWPContainer(container) {
+      const sourcesRaw = container.dataset.sources || 'all';
+      const sources = this.resolveDomains(sourcesRaw);
+      const category = container.dataset.category || '';
+      const start = parseInt(container.dataset.start) || 1;
+      const count = parseInt(container.dataset.items) || 10;
+
+      const key = `${sources.sort().join(',')}::${category}`;
+      if (!this.wpGroups.has(key)) {
+        this.wpGroups.set(key, {
+          sources,
+          category,
+          containers: [],
+          totalNeeded: 0,
+          data: null
+        });
+      }
+      const group = this.wpGroups.get(key);
+      group.containers.push({ container, start, count });
+      group.totalNeeded = Math.max(group.totalNeeded, start + count - 1);
+    },
+
+    async init() {
+      // Preconnect domains dari semua grup
+      const allDomains = new Set();
+      for (const [_, group] of this.wpGroups) {
+        group.sources.forEach(d => allDomains.add(d));
+      }
+      addPreconnect(Array.from(allDomains));
+
+      // Fetch tiap grup (berjalan paralel)
+      const promises = [];
+      for (const [key, group] of this.wpGroups.entries()) {
+        promises.push(this.fetchGroup(key, group));
+      }
+      await Promise.allSettled(promises);
+    },
+
+    async fetchGroup(key, group) {
+      const cacheKey = `feed_mgr_${key}`;
+      let allPosts = getCached(cacheKey);
+      if (allPosts) {
+        this.distributeToWidgets(group, allPosts);
+        return;
+      }
+
+      const fetchCount = group.totalNeeded;
+      const posts = await this.fetchFromSources(group.sources, group.category, fetchCount);
+
+      if (posts.length > 0) {
+        posts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+        setCache(cacheKey, posts, config.CACHE_DURATION);
+      }
+      group.data = posts;
+      this.distributeToWidgets(group, posts);
+    },
+
+    async fetchFromSources(sources, category, count) {
+      const CONCURRENCY = 6;
+      let catIds = {};
+      // Resolve category ID untuk semua sumber sekaligus (paralel)
+      if (category) {
+        const catPromises = sources.map(async src => {
+          const cid = await this.getCatId(src, category);
+          if (cid) catIds[src] = cid;
+        });
+        await Promise.allSettled(catPromises);
+      }
+
+      const results = [];
+      for (let i = 0; i < sources.length; i += CONCURRENCY) {
+        const batch = sources.slice(i, i + CONCURRENCY);
+        const batchPromises = batch.map(src =>
+          fetchWPOptimized(src, category ? (catIds[src] || null) : null, count, 0, null)
+        );
+        const batchResults = await Promise.allSettled(batchPromises);
+        batchResults.forEach(r => {
+          if (r.status === 'fulfilled') results.push(...r.value);
+        });
+      }
+      return results;
+    },
+
+    async getCatId(source, categoryName) {
+      const catCacheKey = `catid_${source}_${categoryName}`;
+      let catId = getCached(catCacheKey);
+      if (catId !== null && catId !== undefined) return catId;
+      try {
+        const res = await fetch(
+          `https://${source}/wp-json/wp/v2/categories?search=${encodeURIComponent(categoryName)}&per_page=1&_fields=id`
+        );
+        if (!res.ok) return null;
+        const cats = await res.json();
+        catId = cats[0]?.id || null;
+        setCache(catCacheKey, catId, 30 * 60 * 1000); // cache 30 menit untuk kategori
+        return catId;
+      } catch {
+        return null;
+      }
+    },
+
+    distributeToWidgets(group, allPosts) {
+      group.containers.forEach(({ container, start, count }) => {
+        const offset = start - 1;
+        const sliced = allPosts.slice(offset, offset + count);
+        if (sliced.length > 0) {
+          container.innerHTML = renderList(sliced);
+        } else {
+          container.innerHTML = config.ERROR_MESSAGE;
+        }
+        container.removeAttribute('aria-busy');
+      });
+    }
+  };
+
+  // ============================================================
+  // MAIN INITIALIZATION
+  // ============================================================
+  // Tangani semua jenis widget setelah DOM siap
+
+  // Daftarkan multi-source WP
+  document.querySelectorAll('.recent-wp-multi').forEach(container => {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    FeedManager.registerWPContainer(container);
+  });
+
+  // Single WP
+  document.querySelectorAll('.recent-wp').forEach(container => {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    window.loadSingleWP(container);
+  });
+
+  // Single Blogger
+  document.querySelectorAll('.recent-blg').forEach(container => {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    window.loadSingleBlogger(container);
+  });
+
+  // Multi Blogger (tetap pakai loadMultiBlogger asli)
+  document.querySelectorAll('.recent-blg-multi').forEach(container => {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    window.loadMultiBlogger(container);
+  });
+
+  // Mulai FeedManager (multi WP terkelompok)
+  FeedManager.init();
+
+  // ============================================================
+  // SINGLE WP (tetap ada untuk widget non-grup)
   // ============================================================
   window.loadSingleWP = async function(container) {
     const source = container.getAttribute('data-source');
@@ -509,128 +591,9 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // ============================================================
-  // MULTI-SOURCE WP
-  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
-  // bukan per-source — karena tiap site punya artikel berbeda.
-  // Fetch selalu dari offset=0, ambil lebih banyak agar slice valid.
-  // ============================================================
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycby-wjHrISkxkjEaHOpoU2risaNErxoJYEhV9qswp873AF8p3jmNhjE8GSw84K3jZhTD/exec';
-  
-  function fetchFromGAS(group, category, total, start, cacheKey, container, isBackground) {
-  const params = new URLSearchParams({ group, category, items: total, start });
-  const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
-
-  const timer = setTimeout(() => {
-    document.getElementById(cbName)?.remove();
-    delete window[cbName];
-    if (!isBackground) {
-      container.innerHTML = config.ERROR_MESSAGE;
-      container.removeAttribute('aria-busy');
-    }
-  }, 20000);
-
-  // HARUS didefinisikan SEBELUM appendChild
-  window[cbName] = function(posts) {
-    clearTimeout(timer);
-    document.getElementById(cbName)?.remove();
-    delete window[cbName];
-    if (posts && Array.isArray(posts) && posts.length) {
-      setCache(cacheKey, posts);
-      container.innerHTML = renderList(posts);
-    } else if (!isBackground) {
-      container.innerHTML = config.ERROR_MESSAGE;
-    }
-    container.removeAttribute('aria-busy');
-  };
-
-  // Baru append script
-  params.append('callback', cbName);
-  const script = document.createElement('script');
-  script.id  = cbName;
-  script.src = `${GAS_URL}?${params}`;
-  script.onerror = () => {
-    clearTimeout(timer);
-    document.getElementById(cbName)?.remove();
-    delete window[cbName];
-    if (!isBackground) {
-      container.innerHTML = config.ERROR_MESSAGE;
-      container.removeAttribute('aria-busy');
-    }
-  };
-  document.body.appendChild(script);
-}
-
-window.loadMultiWP = function(container) {
-  const raw      = container.getAttribute('data-sources') || '';
-  const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
-  const category = container.getAttribute('data-category') || '';
-  const total    = parseInt(container.getAttribute('data-items')) || 10;
-  const start    = parseInt(container.getAttribute('data-start')) || 1;
-
-  if (group === 'custom') {
-    loadMultiWPCustom(container);
-    return;
-  }
-
-  const cacheKey = `gas_${group}_${category}_${total}_${start}`;
-  const stale    = getCached(cacheKey);
-
-  if (stale) {
-    container.innerHTML = renderList(stale);
-    container.removeAttribute('aria-busy');
-    fetchFromGAS(group, category, total, start, cacheKey, container, true);
-    return;
-  }
-
-  fetchFromGAS(group, category, total, start, cacheKey, container, false);
-};
-
-async function loadMultiWPCustom(container) {
-  const raw          = container.getAttribute('data-sources') || '';
-  const category     = container.getAttribute('data-category') || '';
-  const total        = parseInt(container.getAttribute('data-items')) || 10;
-  const start        = parseInt(container.getAttribute('data-start')) || 1;
-  const globalOffset = start - 1;
-  const sources      = raw.split(',').map(s => s.trim()).filter(Boolean);
-
-  if (!sources.length) return;
-
-  const perSource = Math.min(
-    Math.ceil((total + globalOffset) / sources.length) + 2,
-    total + globalOffset
-  );
-
-  addPreconnect(sources);
-
-  const promises = sources.map(async source => {
-    let catId = null;
-    if (category) {
-      catId = await fetchWPCategory(source, category);
-      if (!catId) return [];
-    }
-    return fetchWPOptimized(source, catId, perSource, 0, container);
-  });
-
-  let allPosts = [];
-  (await Promise.allSettled(promises)).forEach(r => {
-    if (r.status === 'fulfilled') allPosts = allPosts.concat(r.value);
-  });
-
-  allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-
-  const sliced = allPosts.slice(globalOffset, globalOffset + total);
-  container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
-  container.removeAttribute('aria-busy');
-}
-
-  // ============================================================
-  // MULTI-SOURCE BLOGGER
-  // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
-  // bukan start-index per-source — karena tiap blog punya artikel berbeda.
-  // Fetch selalu dari start-index=1, ambil lebih banyak agar slice valid.
+  // MULTI BLOGGER (fungsi asli dipertahankan)
   // ============================================================
   window.loadMultiBlogger = function(container) {
-    // Resolve alias grup jika data-sources berisi nama grup
     const raw = container.getAttribute('data-sources') || '';
     const sourceAttr = DOMAIN_GROUPS[raw.trim()] || raw;
     const sources       = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
@@ -638,10 +601,8 @@ async function loadMultiWPCustom(container) {
     const total         = parseInt(container.getAttribute('data-items')) || 10;
     const sort          = container.getAttribute('data-sort') || 'date';
     const start         = parseInt(container.getAttribute('data-start')) || 1;
-    const globalOffset  = start - 1; // 0-based, diterapkan setelah merge
+    const globalOffset  = start - 1;
 
-    // Fetch lebih banyak per-source agar setelah dipotong offset global
-    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
     const fetchCount = total + globalOffset;
 
     if (!sources.length) return;
@@ -652,7 +613,6 @@ async function loadMultiWPCustom(container) {
     let completed  = 0;
 
     sources.forEach(source => {
-      // startIndex=1: selalu mulai dari artikel pertama tiap source
       loadBloggerOptimized(source, category, fetchCount, 1, entries => {
         allEntries = allEntries.concat(entries);
         completed++;
@@ -661,12 +621,10 @@ async function loadMultiWPCustom(container) {
           if (sort === 'date') {
             allEntries.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
           }
-          // Terapkan offset global: potong dari posisi start, ambil sejumlah total
           const slicedEntries = allEntries.slice(globalOffset, globalOffset + total);
           if (slicedEntries.length) {
             container.innerHTML = renderList(slicedEntries);
           } else {
-            // Semua source gagal atau tidak ada artikel sama sekali
             container.innerHTML = config.ERROR_MESSAGE;
           }
           container.removeAttribute('aria-busy');
@@ -675,9 +633,14 @@ async function loadMultiWPCustom(container) {
     });
   };
 
+  // ============================================================
+  // MULTI WP (dijalankan oleh FeedManager, tidak diperlukan lagi)
+  // ============================================================
+  window.loadMultiWP = function() {
+    // kosong, sudah ditangani FeedManager
+  };
+
 });
-
-
 
 /**
  * CENTRALIZED BANNER WIDGET
@@ -829,7 +792,7 @@ async function loadMultiWPCustom(container) {
   }
 
   // ============================================================
-  // POSITION HELPER
+  // POSITION HELPER (tidak digunakan di versi ini, tapi tersedia)
   // ============================================================
   function getPositionStyles(position) {
     let horizontal = '';
