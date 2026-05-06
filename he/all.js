@@ -150,31 +150,30 @@ document.addEventListener("DOMContentLoaded", function () {
   // LAZY LOAD — trigger on first scroll, fallback 3 detik
   // Tidak perlu menunggu container masuk ke layar
   // ============================================================
+  const LOADER_MAP = {
+    'recent-wp'        : 'loadSingleWP',
+    'recent-blg'       : 'loadSingleBlogger',
+    'recent-wp-multi'  : 'loadMultiWP',
+    'recent-blg-multi' : 'loadMultiBlogger',
+  };
+  
   function loadAllFeeds() {
-    const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
-    document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return; // skip jika sudah dimuat
-      container.dataset.loaded = '1';
-
-      const loader = container.dataset.loader;
-
-      // Tampilkan skeleton segera
-      container.innerHTML = renderSkeleton();
-      container.setAttribute('aria-busy', 'true');
-
-      if (loader && window[loader]) {
-        window[loader](container);
-        delete container.dataset.loader;
-      }
-    });
+    document.querySelectorAll('.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi')
+      .forEach(function(container) {
+        if (container.dataset.loaded) return;
+        container.dataset.loaded = '1';
+        const loaderKey  = Object.keys(LOADER_MAP).find(cls => container.classList.contains(cls));
+        const loaderName = LOADER_MAP[loaderKey];
+        container.innerHTML = renderSkeleton();
+        container.setAttribute('aria-busy', 'true');
+        if (loaderName && window[loaderName]) {
+          window[loaderName](container);
+        }
+      });
   }
-
-// Load langsung saat browser idle, tanpa tunggu scroll
-if ('requestIdleCallback' in window) {
-  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
-} else {
-  setTimeout(loadAllFeeds, 300); // fallback browser lama
-}
+  
+  setTimeout(loadAllFeeds, 0);
+  setTimeout(loadAllFeeds, 800);
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
@@ -480,10 +479,6 @@ if ('requestIdleCallback' in window) {
     container.removeAttribute('aria-busy');
   };
 
-  document.querySelectorAll('.recent-wp').forEach(container => {
-    container.dataset.loader = 'loadSingleWP';
-  });
-
   // ============================================================
   // SINGLE BLOGGER
   // ============================================================
@@ -502,10 +497,6 @@ if ('requestIdleCallback' in window) {
     }, container);
   };
 
-  document.querySelectorAll('.recent-blg').forEach(container => {
-    container.dataset.loader = 'loadSingleBlogger';
-  });
-
   // ============================================================
   // MULTI-SOURCE WP
   // data-start diterapkan sebagai offset GLOBAL setelah merge+sort,
@@ -521,46 +512,64 @@ if ('requestIdleCallback' in window) {
     const total    = parseInt(container.getAttribute('data-items')) || 10;
     const start    = parseInt(container.getAttribute('data-start')) || 1;
   
-    // Jika bukan named group, fallback ke fetch lama
     if (group === 'custom') {
-      return loadMultiWPDirect(container); // fungsi lama, rename
+      // fallback: fetch langsung tanpa GAS
+      const sources = raw.split(',').map(s => s.trim()).filter(Boolean);
+      const globalOffset = start - 1;
+      const perSource = Math.min(Math.ceil((total + globalOffset) / sources.length) + 2, total + globalOffset);
+      addPreconnect(sources);
+      const promises = sources.map(async source => {
+        let catId = null;
+        if (category) {
+          catId = await fetchWPCategory(source, category);
+          if (!catId) return [];
+        }
+        return fetchWPOptimized(source, catId, perSource, 0, container);
+      });
+      let allPosts = [];
+      (await Promise.allSettled(promises)).forEach(r => {
+        if (r.status === 'fulfilled') allPosts = allPosts.concat(r.value);
+      });
+      if (category !== '' || container.getAttribute('data-sort') === 'date') {
+        allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+      }
+      const sliced = allPosts.slice(globalOffset, globalOffset + total);
+      container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+      return;
     }
   
     const params = new URLSearchParams({ group, category, items: total, start });
   
-const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
-const timer  = setTimeout(() => {
-  document.getElementById(cbName)?.remove();
-  delete window[cbName];
-  container.innerHTML = config.ERROR_MESSAGE;
-  container.removeAttribute('aria-busy');
-}, 20000);
-
-window[cbName] = function(posts) {
-  clearTimeout(timer);
-  document.getElementById(cbName)?.remove();
-  delete window[cbName];
-  container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
-  container.removeAttribute('aria-busy');
-};
-
-params.append('callback', cbName);
-const script = document.createElement('script');
-script.id  = cbName;
-script.src = `${GAS_URL}?${params}`;
-script.onerror = () => {
-  clearTimeout(timer);
-  document.getElementById(cbName)?.remove();
-  delete window[cbName];
-  container.innerHTML = config.ERROR_MESSAGE;
-  container.removeAttribute('aria-busy');
-};
-document.body.appendChild(script);
+    const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
+    const timer  = setTimeout(() => {
+      document.getElementById(cbName)?.remove();
+      delete window[cbName];
+      container.innerHTML = config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+    }, 20000);
+    
+    window[cbName] = function(posts) {
+      clearTimeout(timer);
+      document.getElementById(cbName)?.remove();
+      delete window[cbName];
+      container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+    };
+    
+    params.append('callback', cbName);
+    const script = document.createElement('script');
+    script.id  = cbName;
+    script.src = `${GAS_URL}?${params}`;
+    script.onerror = () => {
+      clearTimeout(timer);
+      document.getElementById(cbName)?.remove();
+      delete window[cbName];
+      container.innerHTML = config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+    };
+    document.body.appendChild(script);
   };
-
-  document.querySelectorAll('.recent-wp-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiWP';
-  });
 
   // ============================================================
   // MULTI-SOURCE BLOGGER
@@ -613,10 +622,6 @@ document.body.appendChild(script);
       }, container);
     });
   };
-
-  document.querySelectorAll('.recent-blg-multi').forEach(container => {
-    container.dataset.loader = 'loadMultiBlogger';
-  });
 
 });
 
