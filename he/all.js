@@ -33,7 +33,7 @@
 // DOMAIN GROUPS — definisi sekali, pakai di semua widget
 // ============================================================
 const DOMAIN_GROUPS = {
-  'all'  : 'news.imnu.biz.id, banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, bola.harianexpress.com, depok.harianexpress.com, edu.harianexpress.com, en.harianexpress.com, entertainment.harianexpress.com, finance.harianexpress.com, foto.harianexpress.com, health.harianexpress.com, humaniora.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, lifestyle.harianexpress.com, nature.harianexpress.com, olahraga.harianexpress.com, otomotif.harianexpress.com, properti.harianexpress.com, tangsel.harianexpress.com, tekno.harianexpress.com, travel.harianexpress.com, umkm.harianexpress.com, www.harianexpress.com',
+  'all'  : 'banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, bola.harianexpress.com, depok.harianexpress.com, edu.harianexpress.com, en.harianexpress.com, entertainment.harianexpress.com, finance.harianexpress.com, foto.harianexpress.com, health.harianexpress.com, humaniora.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, lifestyle.harianexpress.com, nature.harianexpress.com, olahraga.harianexpress.com, otomotif.harianexpress.com, properti.harianexpress.com, tangsel.harianexpress.com, tekno.harianexpress.com, travel.harianexpress.com, umkm.harianexpress.com, www.harianexpress.com',
 
   'daerah' : 'banten.harianexpress.com, blitar.harianexpress.com, bogor.harianexpress.com, depok.harianexpress.com, klaten.harianexpress.com, lampung.harianexpress.com, tangsel.harianexpress.com',
 
