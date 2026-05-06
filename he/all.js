@@ -528,15 +528,34 @@ if ('requestIdleCallback' in window) {
   
     const params = new URLSearchParams({ group, category, items: total, start });
   
-    try {
-      const res   = await fetch(`${GAS_URL}?${params}`, { cache: 'no-store' });
-      const posts = await res.json();
-      container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
-    } catch {
-      container.innerHTML = config.ERROR_MESSAGE;
-    }
-  
-    container.removeAttribute('aria-busy');
+const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
+const timer  = setTimeout(() => {
+  document.getElementById(cbName)?.remove();
+  delete window[cbName];
+  container.innerHTML = config.ERROR_MESSAGE;
+  container.removeAttribute('aria-busy');
+}, 20000);
+
+window[cbName] = function(posts) {
+  clearTimeout(timer);
+  document.getElementById(cbName)?.remove();
+  delete window[cbName];
+  container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
+  container.removeAttribute('aria-busy');
+};
+
+params.append('callback', cbName);
+const script = document.createElement('script');
+script.id  = cbName;
+script.src = `${GAS_URL}?${params}`;
+script.onerror = () => {
+  clearTimeout(timer);
+  document.getElementById(cbName)?.remove();
+  delete window[cbName];
+  container.innerHTML = config.ERROR_MESSAGE;
+  container.removeAttribute('aria-busy');
+};
+document.body.appendChild(script);
   };
 
   document.querySelectorAll('.recent-wp-multi').forEach(container => {
