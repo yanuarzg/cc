@@ -45,48 +45,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // CONFIG
   // ============================================================
   const config = {
-    CACHE_FRESH    : 30 * 1000,        // 30 detik — skip fetch sama sekali
-    CACHE_STALE    : 10 * 60 * 1000,   // 10 menit — tampil lama, fetch baru di background
-    FETCH_TIMEOUT  : 20 * 1000,
-    RETRY_DELAY    : 3 * 1000,
+    CACHE_DURATION : 1 * 60 * 1000,  // 1 menit — artikel lebih fresh
+    FETCH_TIMEOUT  : 20 * 1000,       // 20 detik — cukup untuk koneksi lambat
+    RETRY_DELAY    : 3 * 1000,        // jeda sebelum retry otomatis
     ERROR_MESSAGE  : '<p style="text-align:center;color:#888;padding:12px 0;">Koneksi lambat, memuat ulang…</p>',
     PLACEHOLDER    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
   };
-  
-  // Helper SWR: tampilkan cache lama dulu, fetch baru di background
-  async function renderWithSWR(cacheKey, fetchFn, container) {
-    const cached = getCached(cacheKey);
-  
-    // Ada cache dan masih fresh → tampil langsung, skip fetch
-    if (cached && !cached._isStale) {
-      container.innerHTML = renderList(cached.value);
-      container.removeAttribute('aria-busy');
-      return;
-    }
-  
-    // Ada cache tapi sudah stale → tampil dulu, fetch baru di background
-    if (cached && cached._isStale) {
-      container.innerHTML = renderList(cached.value);
-      container.removeAttribute('aria-busy');
-      // Fetch baru tanpa skeleton, user tidak terganggu
-      const fresh = await fetchFn();
-      if (fresh && fresh.length && fresh[0]?.link !== cached.value[0]?.link) {
-        container.innerHTML = renderList(fresh);
-        setCache(cacheKey, fresh);
-      }
-      return;
-    }
-  
-    // Tidak ada cache → tampil skeleton, tunggu fetch
-    const fresh = await fetchFn();
-    if (fresh && fresh.length) {
-      setCache(cacheKey, fresh);
-      container.innerHTML = renderList(fresh);
-    } else {
-      container.innerHTML = config.ERROR_MESSAGE;
-    }
-    container.removeAttribute('aria-busy');
-  }
 
   // ============================================================
   // REQUEST DEDUPLICATION TRACKER
@@ -166,22 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // CACHE HELPER
   // ============================================================
   function getCached(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      // Kembalikan data meski expired (untuk SWR di perubahan #2)
-      // Tandai apakah masih fresh atau sudah stale
-      data._isStale = (Date.now() - data.timestamp) > config.CACHE_FRESH;
-      data._isExpired = (Date.now() - data.timestamp) > config.CACHE_STALE;
-      if (data._isExpired) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return data;
-    } catch {
-      return null;
-    }
+    return null; // disable cache sementara untuk debug
   }
 
   function setCache(key, value) {
@@ -203,48 +152,29 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   function loadAllFeeds() {
     const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
-    const viewportH = window.innerHeight;
-  
     document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return;
+      if (container.dataset.loaded) return; // skip jika sudah dimuat
       container.dataset.loaded = '1';
-  
+
       const loader = container.dataset.loader;
-      const rect = container.getBoundingClientRect();
-      const isAboveFold = rect.top < viewportH;
-  
-      container.innerHTML = renderSkeleton(container);
+
+      // Tampilkan skeleton segera
+      container.innerHTML = renderSkeleton();
       container.setAttribute('aria-busy', 'true');
-  
-      if (isAboveFold) {
-        // Widget di atas layar → load langsung tanpa delay
-        if (loader && window[loader]) {
-          window[loader](container);
-          delete container.dataset.loader;
-        }
-      } else {
-        // Widget di bawah layar → load saat browser idle
-        const doLoad = () => {
-          if (loader && window[loader]) {
-            window[loader](container);
-            delete container.dataset.loader;
-          }
-        };
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(doLoad, { timeout: 2000 });
-        } else {
-          setTimeout(doLoad, 300);
-        }
+
+      if (loader && window[loader]) {
+        window[loader](container);
+        delete container.dataset.loader;
       }
     });
   }
-  
-  // Above-fold load langsung, sisanya saat idle
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAllFeeds);
-  } else {
-    loadAllFeeds();
-  }
+
+// Load langsung saat browser idle, tanpa tunggu scroll
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
+} else {
+  setTimeout(loadAllFeeds, 300); // fallback browser lama
+}
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
@@ -540,13 +470,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const count  = parseInt(container.getAttribute('data-items')) || 5;
     const start  = parseInt(container.getAttribute('data-start'))  || 1;
     const offset = start - 1;
-    const cacheKey = `wp_${source}_all_${count}_${offset}`;
-  
-    await renderWithSWR(
-      cacheKey,
-      () => fetchWPOptimized(source, null, count, offset, container),
-      container
-    );
+
+    const posts = await fetchWPOptimized(source, null, count, offset, container);
+    if (posts.length) {
+      container.innerHTML = renderList(posts);
+    } else {
+      container.innerHTML = config.ERROR_MESSAGE;
+    }
+    container.removeAttribute('aria-busy');
   };
 
   document.querySelectorAll('.recent-wp').forEach(container => {
@@ -560,41 +491,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const source     = container.getAttribute('data-source');
     const count      = parseInt(container.getAttribute('data-items')) || 5;
     const startIndex = parseInt(container.getAttribute('data-start'))  || 1;
-    const cacheKey   = `blg_${source}_all_${count}_${startIndex}`;
-  
-    // Wrap JSONP ke Promise agar bisa dipakai SWR
-    const fetchFn = () => new Promise(resolve => {
-      loadBloggerOptimized(source, null, count, startIndex, resolve, container);
-    });
-  
-    // Cek cache dulu sebelum masuk SWR
-    const cached = getCached(cacheKey);
-  
-    if (cached && !cached._isStale) {
-      // Fresh — tampil langsung
-      container.innerHTML = renderList(cached.value);
-      container.removeAttribute('aria-busy');
-      return;
-    }
-  
-    if (cached && cached._isStale) {
-      // Stale — tampil lama dulu
-      container.innerHTML = renderList(cached.value);
-      container.removeAttribute('aria-busy');
-      // Fetch baru di background
-      fetchFn().then(fresh => {
-        if (fresh && fresh.length && fresh[0]?.link !== cached.value[0]?.link) {
-          container.innerHTML = renderList(fresh);
-          setCache(cacheKey, fresh);
-        }
-      });
-      return;
-    }
-  
-    // Tidak ada cache — tunggu fetch
+
     loadBloggerOptimized(source, null, count, startIndex, posts => {
       if (posts.length) {
-        setCache(cacheKey, posts);
         container.innerHTML = renderList(posts);
       } else {
         container.innerHTML = config.ERROR_MESSAGE;
