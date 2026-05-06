@@ -150,31 +150,33 @@ document.addEventListener("DOMContentLoaded", function () {
   // LAZY LOAD — trigger on first scroll, fallback 3 detik
   // Tidak perlu menunggu container masuk ke layar
   // ============================================================
-  function loadAllFeeds() {
-    const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
-    document.querySelectorAll(selectors).forEach(function(container) {
-      if (container.dataset.loaded) return; // skip jika sudah dimuat
-      container.dataset.loaded = '1';
-
-      const loader = container.dataset.loader;
-
-      // Tampilkan skeleton segera
-      container.innerHTML = renderSkeleton();
-      container.setAttribute('aria-busy', 'true');
-
-      if (loader && window[loader]) {
-        window[loader](container);
-        delete container.dataset.loader;
+  function loadSingleFeed(container) {
+    if (container.dataset.loaded) return;
+    container.dataset.loaded = '1';
+    container.innerHTML = renderSkeleton();
+    container.setAttribute('aria-busy', 'true');
+    const loader = container.dataset.loader;
+    if (loader && window[loader]) {
+      window[loader](container);
+      delete container.dataset.loader;
+    }
+  }
+  
+  const feedObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        loadSingleFeed(entry.target);
+        feedObserver.unobserve(entry.target); // stop observe setelah load
       }
     });
-  }
-
-// Load langsung saat browser idle, tanpa tunggu scroll
-if ('requestIdleCallback' in window) {
-  requestIdleCallback(loadAllFeeds, { timeout: 1500 });
-} else {
-  setTimeout(loadAllFeeds, 300); // fallback browser lama
-}
+  }, {
+    rootMargin: '200px' // mulai load 200px sebelum masuk viewport
+  });
+  
+  const selectors = '.recent-wp, .recent-blg, .recent-wp-multi, .recent-blg-multi';
+  document.querySelectorAll(selectors).forEach(container => {
+    feedObserver.observe(container);
+  });
 
   // ============================================================
   // HELPER: Ekstrak thumbnail dari satu post WP
