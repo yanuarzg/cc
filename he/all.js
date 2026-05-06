@@ -1,23 +1,3 @@
-/**
- * OPTIMIZED FEEDS LOADER WITH SKELETON
- * Fitur optimasi:
- * - localStorage cache (5 menit)
- * - Lazy loading (trigger on first scroll, fallback 3 detik)
- * - Parallel fetch dengan AbortController
- * - Fetch hanya field penting (tanpa _embed)
- * - Preconnect DNS
- * - Skeleton loader responsif (4 desktop, 2 mobile)
- * - Support data-start untuk offset artikel
- * 
- * CHANGELOG:
- * - v1.4: Fix artikel baru tidak muncul setelah refresh.
- *         Ganti cache: 'force-cache' → 'no-cache' pada semua WP fetch.
- *         'force-cache' menyebabkan browser menggunakan HTTP cache lama
- *         bahkan setelah halaman di-refresh, mengabaikan artikel baru.
- *         'no-cache' tetap memanfaatkan browser cache via 304 Not Modified,
- *         tapi selalu re-validasi ke server terlebih dahulu.
- */
-
 (() => {
   'use strict';
   const TARGET_URL = 'https://harianexpress.com';
@@ -532,56 +512,30 @@ if ('requestIdleCallback' in window) {
   // bukan per-source — karena tiap site punya artikel berbeda.
   // Fetch selalu dari offset=0, ambil lebih banyak agar slice valid.
   // ============================================================
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycby-wjHrISkxkjEaHOpoU2risaNErxoJYEhV9qswp873AF8p3jmNhjE8GSw84K3jZhTD/exec';
+  
   window.loadMultiWP = async function(container) {
-    // Resolve alias grup jika data-sources berisi nama grup
-    const raw = container.getAttribute('data-sources') || '';
-    const sourceAttr = DOMAIN_GROUPS[raw.trim()] || raw;
-    const sources = sourceAttr.split(',').map(s => s.trim()).filter(Boolean);
-    const category  = container.getAttribute('data-category') || '';
-    const total     = parseInt(container.getAttribute('data-items')) || 10;
-    const sort      = container.getAttribute('data-sort') || 'date';
-    const start     = parseInt(container.getAttribute('data-start')) || 1;
-    const globalOffset = start - 1; // 0-based, diterapkan setelah merge
-
-    // Fetch lebih banyak per-source agar setelah dipotong offset global
-    // hasilnya tetap cukup memenuhi jumlah `total` yang diminta.
-    const fetchCount = total + globalOffset;
-
-    if (!sources.length) return;
-
-    addPreconnect(sources);
-
-    let allPosts = [];
-
-    const promises = sources.map(async (source) => {
-      let catId = null;
-      if (category) {
-        catId = await fetchWPCategory(source, category);
-        if (!catId) return [];
-      }
-      // offset=0: selalu mulai dari artikel pertama tiap source
-      return fetchWPOptimized(source, catId, fetchCount, 0, container);
-    });
-
-    const results = await Promise.allSettled(promises);
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        allPosts = allPosts.concat(result.value);
-      }
-    });
-
-    if (sort === 'date') {
-      allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+    const raw      = container.getAttribute('data-sources') || '';
+    const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
+    const category = container.getAttribute('data-category') || '';
+    const total    = parseInt(container.getAttribute('data-items')) || 10;
+    const start    = parseInt(container.getAttribute('data-start')) || 1;
+  
+    // Jika bukan named group, fallback ke fetch lama
+    if (group === 'custom') {
+      return loadMultiWPDirect(container); // fungsi lama, rename
     }
-
-    // Terapkan offset global: potong dari posisi start, ambil sejumlah total
-    const slicedPosts = allPosts.slice(globalOffset, globalOffset + total);
-    if (slicedPosts.length) {
-      container.innerHTML = renderList(slicedPosts);
-    } else {
-      // Semua source gagal atau tidak ada artikel sama sekali
+  
+    const params = new URLSearchParams({ group, category, items: total, start });
+  
+    try {
+      const res   = await fetch(`${GAS_URL}?${params}`, { cache: 'no-store' });
+      const posts = await res.json();
+      container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
+    } catch {
       container.innerHTML = config.ERROR_MESSAGE;
     }
+  
     container.removeAttribute('aria-busy');
   };
 
