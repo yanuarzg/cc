@@ -1,0 +1,213 @@
+<style>
+.agg-post-img, .agg-post-img img {
+    min-width: 100px;
+    height: auto;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin: 0!important;
+    line-height: 0;
+}
+.agg-post-meta {
+    gap: 0.25rem 0.5rem;
+    line-height: normal;
+align-items: baseline;
+}
+  @media (max-width: 640px) {
+  }
+</style>
+
+<div class="blogger-aggregator my-2" 
+     data-items="6" 
+     data-blog-sources="www.adahabar.com, www.anekakabar.com, www.aspirasiborneo.com, www.baritoterkini.com, www.benuapos24.com, www.diksiindonesia.com, www.dutakalteng.com, www.enggangnews.com, www.gemabanten.com, www.habarterkini.com, www.infobaritoutara.id, www.infoterbit.com, www.kabarmuarateweh.com, www.kamiborneo.com, www.lintasborneo24.com, www.lintasborneonews.com, www.lintascakrawalanews.com, www.lintaskalimantan.co, www.lintasmuranews.com, www.lintasnusantara24.com, www.logikaberita.com, www.mdnewsindonesia.com, www.mediabuser.com, www.mediakotaonline.com, www.mediamura.com, www.merdeka45detik.com, www.merakyatpost.com, www.muranews.com, www.nuansanusantara.com, www.pewartakaltengnews.com, www.pojokinformasi.com, www.publikborneo.com, www.samaitah.com, www.seputarbaritoutara.com, www.suaramura.com, www.teropongkalteng.com, www.tewenews.co.id, www.tewenews.id, www.trybonnewsmura.com, www.wartabarito.com, www.wartaborneonews.com, www.wartadayak.com">
+</div>
+
+<script>
+(function() {
+  var postDesc = (typeof postDesc !== 'undefined') ? postDesc : false;
+  var postLabel = (typeof postLabel !== 'undefined') ? postLabel : true;
+  var postAuthor = (typeof postAuthor !== 'undefined') ? postAuthor : false;
+  var postWebsite = (typeof postWebsite !== 'undefined') ? postWebsite : true;
+  var loadMore = (typeof loadMore !== 'undefined') ? loadMore : true; 
+
+  const EXCERPT_LENGTH = 110;
+  const NO_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Crect fill='%23ddd' width='300' height='200'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-family='Arial'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function getThumbnail(entry) {
+    if (entry.media$thumbnail && entry.media$thumbnail.url) {
+      return entry.media$thumbnail.url;
+    }
+    const contentSrc = entry.content?.$t || entry.summary?.$t || '';
+    const imgMatch = contentSrc.match(/<img[^>]+src\s*=\s*["']([^"']+)["']/i);
+    if (imgMatch && imgMatch[1]) {
+      let imgUrl = imgMatch[1];
+      if (imgUrl.includes('img.youtube.com') && imgUrl.includes('default.jpg')) {
+        imgUrl = imgUrl.replace('default.jpg', 'hqdefault.jpg');
+      }
+      return imgUrl;
+    }
+    return NO_IMAGE;
+  }
+
+  function normalizePost(entry, domain) {
+    const title = entry.title?.$t || 'Tanpa Judul';
+    const link = entry.link?.find(l => l.rel === 'alternate')?.href || '#';
+    const date = entry.published?.$t || entry.updated?.$t || '';
+    const author = entry.author?.[0]?.name?.$t || 'Redaksi';
+
+    let rawSummary = entry.summary?.$t || entry.content?.$t || '';
+    rawSummary = rawSummary.replace(/<[^>]*>/g, '').trim();
+
+    let summary = '';
+    if (rawSummary.length > 0) {
+      summary = rawSummary.length > EXCERPT_LENGTH ? rawSummary.substring(0, EXCERPT_LENGTH) + '..' : rawSummary;
+    }
+
+    const thumb = getThumbnail(entry);
+    const labels = entry.category ? entry.category.map(c => c.term) : [];
+    return { title, link, date, author, summary, thumb, labels, source: domain.replace(/^www\./, '') };
+  }
+
+  function fetchDomain(domain) {
+    return new Promise((resolve) => {
+      const callbackName = `_agg_${domain.replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+      const url = `https://${domain}/feeds/posts/default?alt=json&max-results=150&orderby=published&callback=${callbackName}`;
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        if (data && data.feed && data.feed.entry) {
+          const entries = Array.isArray(data.feed.entry) ? data.feed.entry : [data.feed.entry];
+          const posts = entries.map(e => normalizePost(e, domain));
+          resolve(posts);
+        } else {
+          resolve([]);
+        }
+      };
+      const script = document.createElement('script');
+      script.src = url;
+      script.onerror = () => { delete window[callbackName]; resolve([]); };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function fetchAllArticles(domains) {
+    const results = await Promise.all(domains.map(fetchDomain));
+    let allPosts = results.flat();
+    const unique = new Map();
+    allPosts.forEach(p => { if (!unique.has(p.link)) unique.set(p.link, p); });
+    allPosts = Array.from(unique.values());
+    allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return allPosts;
+  }
+
+  function renderPost(post) {
+    let metaHtml = '';
+    if (postWebsite) {
+      const domainUrl = `https://${post.source}`;
+      metaHtml += `<a href="${domainUrl}" target="_blank" rel="noopener"><small class="postWebsite bold">${escapeHtml(post.source)}</small></a>`;
+    }
+    if (postAuthor) metaHtml += `<small class="postAuthor">${escapeHtml(post.author)}</small>`;
+    metaHtml += `<small class="postDate">${formatDate(post.date)}</small>`;
+    if (postLabel && post.labels.length) {
+      metaHtml += `<small class="postLabels">#${escapeHtml(post.labels[0])}</small>`;
+    }
+
+    const summaryHtml = (postDesc && post.summary) ? `<small class="agg-post-summary">${escapeHtml(post.summary)}</small>` : '';
+
+    return `
+      <article class="agg-post flex g-1">
+        <div class="agg-post-img"><img width="100" src="${post.thumb}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.src='${NO_IMAGE}'"></div>
+        <div class="agg-post-content flex column g-025">
+          <strong class="agg-post-title max-line-2" style="line-height:1.35;"><a href="${post.link}" target="_blank">${escapeHtml(post.title)}</a></strong>
+          ${summaryHtml}
+          <div class="agg-post-meta flex wrap">${metaHtml}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  async function initAggregator(container) {
+    const sourcesAttr = container.dataset.blogSources;
+    if (!sourcesAttr) { container.innerHTML = `<div class="agg-error">data-blog-sources tidak ada</div>`; return; }
+    const domains = sourcesAttr.split(',').map(s=>s.trim()).filter(s=>s);
+    let itemsPerPage = parseInt(container.dataset.items) || 6;
+    container.innerHTML = `<div class="agg-loading">Mengambil artikel...</div>`;
+    const allArticles = await fetchAllArticles(domains);
+    if (!allArticles.length) { container.innerHTML = `<div class="agg-error">Tidak ada artikel</div>`; return; }
+    
+    const total = allArticles.length;
+    let currentCount = (loadMore === false) ? total : Math.min(itemsPerPage, total);
+    
+    function render() {
+      const visible = allArticles.slice(0, currentCount);
+      let html = '<div class="agg-posts">' + visible.map(p=>renderPost(p)).join('') + '</div>';
+      if (loadMore && currentCount < total) {
+        html += `<button class="agg-loadmore btn-primary flex w-fill mt-1 jc-c">⟳ Muat selanjutnya <span class='dn'>(${total - currentCount} tersisa)</span></button>`;
+      }
+      container.innerHTML = html;
+      const btn = container.querySelector('.agg-loadmore');
+      if (btn) {
+        btn.onclick = () => {
+          currentCount += itemsPerPage;
+          render();
+        };
+      }
+    }
+    render();
+  }
+
+  function runAggregators() {
+    const containers = document.querySelectorAll('.blogger-aggregator');
+    if (!containers.length) return;
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const container = entry.target;
+            if (!container._aggLoaded) {
+              container._aggLoaded = true;
+              initAggregator(container);
+            }
+            obs.unobserve(container);
+          }
+        });
+      }, { threshold: 0.1 });
+      containers.forEach(container => {
+        if (!container._aggLoaded) {
+          observer.observe(container);
+        }
+      });
+    } else {
+      containers.forEach(container => {
+        if (!container._aggLoaded) {
+          container._aggLoaded = true;
+          initAggregator(container);
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runAggregators);
+  } else {
+    runAggregators();
+  }
+})();
+
+</script>
