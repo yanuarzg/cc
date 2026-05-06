@@ -130,7 +130,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // CACHE HELPER
   // ============================================================
   function getCached(key) {
-    return null; // disable cache sementara untuk debug
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Date.now() - data.timestamp > config.CACHE_DURATION) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return data.value;
+    } catch {
+      return null;
+    }
   }
 
   function setCache(key, value) {
@@ -549,13 +560,75 @@ document.addEventListener("DOMContentLoaded", function () {
       container.removeAttribute('aria-busy');
     }, 20000);
     
-    window[cbName] = function(posts) {
-      clearTimeout(timer);
-      document.getElementById(cbName)?.remove();
-      delete window[cbName];
-      container.innerHTML = posts.length ? renderList(posts) : config.ERROR_MESSAGE;
-      container.removeAttribute('aria-busy');
+    window.loadMultiWP = async function(container) {
+      const raw      = container.getAttribute('data-sources') || '';
+      const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
+      const category = container.getAttribute('data-category') || '';
+      const total    = parseInt(container.getAttribute('data-items')) || 10;
+      const start    = parseInt(container.getAttribute('data-start')) || 1;
+    
+      if (group === 'custom') {
+        return loadMultiWPCustom(container);
+      }
+    
+      const cacheKey = `gas_${group}_${category}_${total}_${start}`;
+    
+      // Tampilkan cache lama SEKETIKA jika ada
+      const stale = getCached(cacheKey);
+      if (stale) {
+        container.innerHTML = renderList(stale);
+        container.removeAttribute('aria-busy');
+        // Fetch baru di background — update diam-diam
+        fetchFromGAS(group, category, total, start, cacheKey, container, true);
+        return;
+      }
+    
+      // Tidak ada cache — fetch dan tunggu
+      fetchFromGAS(group, category, total, start, cacheKey, container, false);
     };
+    
+    function fetchFromGAS(group, category, total, start, cacheKey, container, isBackground) {
+      const params = new URLSearchParams({ group, category, items: total, start });
+      const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
+    
+      const timer = setTimeout(() => {
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        if (!isBackground) {
+          container.innerHTML = config.ERROR_MESSAGE;
+          container.removeAttribute('aria-busy');
+        }
+      }, 20000);
+    
+      window[cbName] = function(posts) {
+        clearTimeout(timer);
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        if (posts.length) {
+          setCache(cacheKey, posts);
+          // Update tampilan — baik foreground maupun background
+          container.innerHTML = renderList(posts);
+        } else if (!isBackground) {
+          container.innerHTML = config.ERROR_MESSAGE;
+        }
+        container.removeAttribute('aria-busy');
+      };
+    
+      params.append('callback', cbName);
+      const script = document.createElement('script');
+      script.id  = cbName;
+      script.src = `${GAS_URL}?${params}`;
+      script.onerror = () => {
+        clearTimeout(timer);
+        document.getElementById(cbName)?.remove();
+        delete window[cbName];
+        if (!isBackground) {
+          container.innerHTML = config.ERROR_MESSAGE;
+          container.removeAttribute('aria-busy');
+        }
+      };
+      document.body.appendChild(script);
+    }
     
     params.append('callback', cbName);
     const script = document.createElement('script');
