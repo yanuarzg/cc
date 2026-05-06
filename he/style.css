@@ -623,8 +623,10 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 		margin-top: 4rem;
 	}
 	#top-headline .e-con-inner .elementor-element {
-    max-width: -webkit-fill-available;
-}
+	    max-width: -webkit-fill-available;
+	    overflow: hidden;
+	    border-radius: 0.75rem;
+	}
 	.jl_sidebar_w, .menu-detached .jl_sidebar_w {
 		position: relative!important;
 		top: 0!important;
