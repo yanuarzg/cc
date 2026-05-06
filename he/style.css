@@ -689,13 +689,13 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
     max-width: -webkit-fill-available!important;
 	}
 	#top-headline .e-con-inner .elementor-element {
-    margin-top: 1rem!important;
+    margin-top: 0.5rem!important;
 	}
 	#top-headline .e-con-inner .elementor-element-1184541 {
     display: none;
 	}
 	#top-slider > div {
-	    margin: 0 -20px;
+	    margin: 0;
 	    overflow: hidden;
 	}
 }
