@@ -622,6 +622,9 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 		width: -webkit-fill-available;
 		margin-top: 4rem;
 	}
+	#top-headline .e-con-inner .elementor-element {
+    max-width: -webkit-fill-available;
+}
 	.jl_sidebar_w, .menu-detached .jl_sidebar_w {
 		position: relative!important;
 		top: 0!important;
