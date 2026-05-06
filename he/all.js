@@ -516,133 +516,112 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============================================================
   const GAS_URL = 'https://script.google.com/macros/s/AKfycby-wjHrISkxkjEaHOpoU2risaNErxoJYEhV9qswp873AF8p3jmNhjE8GSw84K3jZhTD/exec';
   
-  window.loadMultiWP = async function(container) {
-    const raw      = container.getAttribute('data-sources') || '';
-    const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
-    const category = container.getAttribute('data-category') || '';
-    const total    = parseInt(container.getAttribute('data-items')) || 10;
-    const start    = parseInt(container.getAttribute('data-start')) || 1;
-  
-    if (group === 'custom') {
-      // fallback: fetch langsung tanpa GAS
-      const sources = raw.split(',').map(s => s.trim()).filter(Boolean);
-      const globalOffset = start - 1;
-      const perSource = Math.min(Math.ceil((total + globalOffset) / sources.length) + 2, total + globalOffset);
-      addPreconnect(sources);
-      const promises = sources.map(async source => {
-        let catId = null;
-        if (category) {
-          catId = await fetchWPCategory(source, category);
-          if (!catId) return [];
-        }
-        return fetchWPOptimized(source, catId, perSource, 0, container);
-      });
-      let allPosts = [];
-      (await Promise.allSettled(promises)).forEach(r => {
-        if (r.status === 'fulfilled') allPosts = allPosts.concat(r.value);
-      });
-      if (category !== '' || container.getAttribute('data-sort') === 'date') {
-        allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-      }
-      const sliced = allPosts.slice(globalOffset, globalOffset + total);
-      container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
-      container.removeAttribute('aria-busy');
-      return;
-    }
-  
-    const params = new URLSearchParams({ group, category, items: total, start });
-  
-    const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
-    const timer  = setTimeout(() => {
-      document.getElementById(cbName)?.remove();
-      delete window[cbName];
+  function fetchFromGAS(group, category, total, start, cacheKey, container, isBackground) {
+  const params = new URLSearchParams({ group, category, items: total, start });
+  const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
+
+  const timer = setTimeout(() => {
+    document.getElementById(cbName)?.remove();
+    delete window[cbName];
+    if (!isBackground) {
       container.innerHTML = config.ERROR_MESSAGE;
       container.removeAttribute('aria-busy');
-    }, 20000);
-    
-    window.loadMultiWP = async function(container) {
-      const raw      = container.getAttribute('data-sources') || '';
-      const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
-      const category = container.getAttribute('data-category') || '';
-      const total    = parseInt(container.getAttribute('data-items')) || 10;
-      const start    = parseInt(container.getAttribute('data-start')) || 1;
-    
-      if (group === 'custom') {
-        return loadMultiWPCustom(container);
-      }
-    
-      const cacheKey = `gas_${group}_${category}_${total}_${start}`;
-    
-      // Tampilkan cache lama SEKETIKA jika ada
-      const stale = getCached(cacheKey);
-      if (stale) {
-        container.innerHTML = renderList(stale);
-        container.removeAttribute('aria-busy');
-        // Fetch baru di background — update diam-diam
-        fetchFromGAS(group, category, total, start, cacheKey, container, true);
-        return;
-      }
-    
-      // Tidak ada cache — fetch dan tunggu
-      fetchFromGAS(group, category, total, start, cacheKey, container, false);
-    };
-    
-    function fetchFromGAS(group, category, total, start, cacheKey, container, isBackground) {
-      const params = new URLSearchParams({ group, category, items: total, start });
-      const cbName = 'gasCb_' + Math.random().toString(36).slice(2);
-    
-      const timer = setTimeout(() => {
-        document.getElementById(cbName)?.remove();
-        delete window[cbName];
-        if (!isBackground) {
-          container.innerHTML = config.ERROR_MESSAGE;
-          container.removeAttribute('aria-busy');
-        }
-      }, 20000);
-    
-      window[cbName] = function(posts) {
-        clearTimeout(timer);
-        document.getElementById(cbName)?.remove();
-        delete window[cbName];
-        if (posts.length) {
-          setCache(cacheKey, posts);
-          // Update tampilan — baik foreground maupun background
-          container.innerHTML = renderList(posts);
-        } else if (!isBackground) {
-          container.innerHTML = config.ERROR_MESSAGE;
-        }
-        container.removeAttribute('aria-busy');
-      };
-    
-      params.append('callback', cbName);
-      const script = document.createElement('script');
-      script.id  = cbName;
-      script.src = `${GAS_URL}?${params}`;
-      script.onerror = () => {
-        clearTimeout(timer);
-        document.getElementById(cbName)?.remove();
-        delete window[cbName];
-        if (!isBackground) {
-          container.innerHTML = config.ERROR_MESSAGE;
-          container.removeAttribute('aria-busy');
-        }
-      };
-      document.body.appendChild(script);
     }
-    
-    params.append('callback', cbName);
-    const script = document.createElement('script');
-    script.id  = cbName;
-    script.src = `${GAS_URL}?${params}`;
-    script.onerror = () => {
-      clearTimeout(timer);
-      document.getElementById(cbName)?.remove();
-      delete window[cbName];
+  }, 20000);
+
+  // HARUS didefinisikan SEBELUM appendChild
+  window[cbName] = function(posts) {
+    clearTimeout(timer);
+    document.getElementById(cbName)?.remove();
+    delete window[cbName];
+    if (posts && Array.isArray(posts) && posts.length) {
+      setCache(cacheKey, posts);
+      container.innerHTML = renderList(posts);
+    } else if (!isBackground) {
       container.innerHTML = config.ERROR_MESSAGE;
-      container.removeAttribute('aria-busy');
-    };
-    document.body.appendChild(script);
+    }
+    container.removeAttribute('aria-busy');
   };
+
+  // Baru append script
+  params.append('callback', cbName);
+  const script = document.createElement('script');
+  script.id  = cbName;
+  script.src = `${GAS_URL}?${params}`;
+  script.onerror = () => {
+    clearTimeout(timer);
+    document.getElementById(cbName)?.remove();
+    delete window[cbName];
+    if (!isBackground) {
+      container.innerHTML = config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+    }
+  };
+  document.body.appendChild(script);
+}
+
+window.loadMultiWP = function(container) {
+  const raw      = container.getAttribute('data-sources') || '';
+  const group    = DOMAIN_GROUPS[raw.trim()] ? raw.trim() : 'custom';
+  const category = container.getAttribute('data-category') || '';
+  const total    = parseInt(container.getAttribute('data-items')) || 10;
+  const start    = parseInt(container.getAttribute('data-start')) || 1;
+
+  if (group === 'custom') {
+    loadMultiWPCustom(container);
+    return;
+  }
+
+  const cacheKey = `gas_${group}_${category}_${total}_${start}`;
+  const stale    = getCached(cacheKey);
+
+  if (stale) {
+    container.innerHTML = renderList(stale);
+    container.removeAttribute('aria-busy');
+    fetchFromGAS(group, category, total, start, cacheKey, container, true);
+    return;
+  }
+
+  fetchFromGAS(group, category, total, start, cacheKey, container, false);
+};
+
+async function loadMultiWPCustom(container) {
+  const raw          = container.getAttribute('data-sources') || '';
+  const category     = container.getAttribute('data-category') || '';
+  const total        = parseInt(container.getAttribute('data-items')) || 10;
+  const start        = parseInt(container.getAttribute('data-start')) || 1;
+  const globalOffset = start - 1;
+  const sources      = raw.split(',').map(s => s.trim()).filter(Boolean);
+
+  if (!sources.length) return;
+
+  const perSource = Math.min(
+    Math.ceil((total + globalOffset) / sources.length) + 2,
+    total + globalOffset
+  );
+
+  addPreconnect(sources);
+
+  const promises = sources.map(async source => {
+    let catId = null;
+    if (category) {
+      catId = await fetchWPCategory(source, category);
+      if (!catId) return [];
+    }
+    return fetchWPOptimized(source, catId, perSource, 0, container);
+  });
+
+  let allPosts = [];
+  (await Promise.allSettled(promises)).forEach(r => {
+    if (r.status === 'fulfilled') allPosts = allPosts.concat(r.value);
+  });
+
+  allPosts.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+
+  const sliced = allPosts.slice(globalOffset, globalOffset + total);
+  container.innerHTML = sliced.length ? renderList(sliced) : config.ERROR_MESSAGE;
+  container.removeAttribute('aria-busy');
+}
 
   // ============================================================
   // MULTI-SOURCE BLOGGER
