@@ -625,6 +625,20 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	.jl_smmain_side, .jl_smmain_side .e-con.e-parent {
 	    padding-inline: 0!important;
 	}
+	.page .jl_smmain_side {
+	    padding-inline: 1.5rem!important;
+	}
+	.elementor > .e-parent {
+	    padding-inline: 1.5rem!important;
+	}
+	.page .elementor > .e-parent {
+	    padding-inline: 0!important;
+	}
+
+	.elementor > .e-parent .e-con {
+	    padding-inline: 0;
+	}
+
 	#top-headline .e-con-inner .elementor-element {
 	    max-width: -webkit-fill-available;
 	    overflow: hidden;
@@ -640,13 +654,7 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	.jl_relsec {
     	padding-inline: 0;
     	margin-top: 2rem;
-	}
-	.elementor > .e-parent {
-	    padding-inline: 1.5rem!important;
-	}
-	.elementor > .e-parent .e-con {
-	    padding-inline: 0;
-	}
+	}	
 	.intersec .recent-blg-multi.grid ul, .intersec .recent-wp-multi.grid ul, .intersec .recent-blg.grid ul, .intersec .recent-wp.grid ul {
 		gap: 2rem 4%;
 	}
