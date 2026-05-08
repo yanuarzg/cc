@@ -628,11 +628,11 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	.page .jl_smmain_side {
 	    padding-inline: 1.5rem!important;
 	}
-	.elementor > .e-parent {
-	    padding-inline: 1.5rem!important;
-	}
 	.page .elementor > .e-parent {
 	    padding-inline: 0!important;
+	}
+	.home .elementor > .e-parent {
+	    padding-inline: 1.5rem!important;
 	}
 
 	.elementor > .e-parent .e-con {
