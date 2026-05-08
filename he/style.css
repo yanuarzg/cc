@@ -63,7 +63,8 @@ blockquote:after, .note:after, .success:after, .warning:after, .danger:after { c
 }
 .centralized-banner > img {
     max-width: fit-content;
-    max-height: 210px;
+    max-height: 270px;
+    height: -webkit-fill-available!important;
 }
 #banner-slider {
     padding: 0!important;
@@ -559,6 +560,9 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 
 /* laptop */
 @media only screen and (max-width:1366px){
+	.centralized-banner > img {
+    max-height: 230px;
+}
     footer .e-con-inner {
     display: flex!important;
     flex-wrap: nowrap!important;
@@ -697,9 +701,6 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
     padding-inline: 0;
 	}
 
-	.centralized-banner {
-    flex-direction: column;
-	}
 	.centralized-banner img {
     max-width: -moz-available!important;
     max-width: -webkit-fill-available!important;
@@ -733,6 +734,16 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	    width: -webkit-fill-available;
 	    padding: 0!important;
 	}	
+}
+
+@media only screen and (max-width:450px) {
+	.centralized-banner {
+    flex-direction: column;
+	}
+	.centralized-banner img {
+	    object-fit: cover;
+	    object-position: top;
+	}
 }
 
 .jlc-stick-main-w.jlc-hop4.jl_cus_sihead.jl_r_menu, .dn-i, .d-none-i, .none-i, .jl_shwp, .jl_relsec_wrap span.jl_f_cat.jl_lb1, .jl_relsec_wrap .jl_fe_des, .jl_relsec_wrap .jl_post_meta, .jl_smmain_side .jl_f_cat, .jl_smmain_side .jl_post_meta, .archive .jl_f_cat, .archive .jl_post_meta, .elementor-widget-bopea-social-list { display: none!important; } 
