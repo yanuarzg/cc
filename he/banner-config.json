@@ -1,9 +1,9 @@
 {
   "background": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgZhHZ367X7kXynBGKVowUv-qCY2srAzkeyDlf027rvy7xPxYIdUj1EW-tbM2MpVladsbMgudVlblQZwqEbyrAhTi6ne028dwtgryxqvyxa8X5Sbkz2oYXNmxxHjqNw931teo-aONed1DkJenWbRfyTozh0ujZS82THT07DKsHCMp2AcACunrNiyeJym_0/s1600/grids-bg.webp"
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiCV8BbkX-z3GUrt83zGlKDYosBHzTuQp29uHW6Xdhfg2fFsZKrYrnukAGvZQxEiG5bZYHd5Hz5UlfGkVlUXD9DqiyFRnm_I3RGgXTqe25yI4zs5C5hcCf4JDBPoExE7t5fqO1e1Tb1faMcG_VstbLPRjrYajWfjZVTtKRkyXv4maPZQ5-LdRpuGHqI7M4/rw/pexels-neo-evenger-1772575973-28209449-bg.jpg"
   },
   "event": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiTd_GaulDo77Oa9nPXztVJ0XAUy8h-N_uwz1x1PdGEMaunqwsGa0RlpqTT7mzn6_ExO3zhpP8Zxo0bu2jGdPXdVwBXC9tddts5vCHyHTt_fRy09TrRnWp6gi8oxGDfMaOXA2I7ojf2NmuVWZtGjmwYABYCLzNri-iy78Md0NgIU1n6YHSSXmP5uUuIwFA/s940/Biru%20Putih%20Elegant%20Selamat%20Idul%20Fitri%20Facebook%20Post_20260316_141613_0000.png",
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjVzeptNIZI26QVZJ3wUROakg1REMMtEG78VmUnVbKHVbO3Eb5yyiu8Qzbu6iuMkhOrF_ELUUDKL8m9QIBOL-Ya_tMpK3lCSBuZT4FwZvh5QW7kZqchCKBD4Lu36AdVvIgJqYraKNXo_IJt0GMEQVMbFrhRat_6Rp_k9rizyvhh74soD7x-TzxiqNRNjoY/w320-h240/pexels-neo-evenger-1772575973-28209449.jpg",
     "position": {
       "horizontal": "left",
       "vertical": "center"
@@ -12,14 +12,11 @@
   "slider": {
     "enabled": true,
     "type": "wordpress",
-    "subdomain": "harianexpress.com",
+    "subdomain": "humaniora.harianexpress.com",
     "filterType": "category",
-    "filterValue": "Headline",
+    "filterValue": "Keagamaan",
     "count": 5,
     "autoplaySpeed": 5000
   },
-  "display": {
-    "showOnSites": []
-  },
-  "version": 1773645513541
+  "version": 1778256347686
 }
