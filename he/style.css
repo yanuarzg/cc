@@ -720,6 +720,7 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
     display: -webkit-box!important;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+	margin-bottom: 4rem;
 	}
 	.jl_imgw, .jl_imgin, .jl_imgin img {
 	    aspect-ratio: 16/9!important;
