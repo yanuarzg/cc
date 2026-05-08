@@ -709,9 +709,27 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
     display: none;
 	}
 	#top-slider > div {
-	    margin: 0;
+	    border-radius: 0.75rem;
+	    margin: 0!important;
 	    overflow: hidden;
 	}
+	#top-slider h2 {
+    font-size: large!important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box!important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+	}
+	.jl_imgw, .jl_imgin, .jl_imgin img {
+	    aspect-ratio: 16/9!important;
+	    position: relative!important;
+	    height: auto!important;
+	    min-height: auto!important;
+	    overflow: hidden;
+	    width: -webkit-fill-available;
+	    padding: 0!important;
+	}	
 }
 
 .jlc-stick-main-w.jlc-hop4.jl_cus_sihead.jl_r_menu, .dn-i, .d-none-i, .none-i, .jl_shwp, .jl_relsec_wrap span.jl_f_cat.jl_lb1, .jl_relsec_wrap .jl_fe_des, .jl_relsec_wrap .jl_post_meta, .jl_smmain_side .jl_f_cat, .jl_smmain_side .jl_post_meta, .archive .jl_f_cat, .archive .jl_post_meta, .elementor-widget-bopea-social-list { display: none!important; } 
