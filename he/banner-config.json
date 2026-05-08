@@ -1,6 +1,6 @@
 {
   "background": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiCV8BbkX-z3GUrt83zGlKDYosBHzTuQp29uHW6Xdhfg2fFsZKrYrnukAGvZQxEiG5bZYHd5Hz5UlfGkVlUXD9DqiyFRnm_I3RGgXTqe25yI4zs5C5hcCf4JDBPoExE7t5fqO1e1Tb1faMcG_VstbLPRjrYajWfjZVTtKRkyXv4maPZQ5-LdRpuGHqI7M4/rw/pexels-neo-evenger-1772575973-28209449-bg.jpg"
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiCV8BbkX-z3GUrt83zGlKDYosBHzTuQp29uHW6Xdhfg2fFsZKrYrnukAGvZQxEiG5bZYHd5Hz5UlfGkVlUXD9DqiyFRnm_I3RGgXTqe25yI4zs5C5hcCf4JDBPoExE7t5fqO1e1Tb1faMcG_VstbLPRjrYajWfjZVTtKRkyXv4maPZQ5-LdRpuGHqI7M4/s320/pexels-neo-evenger-1772575973-28209449-bg.jpg"
   },
   "event": {
     "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjVzeptNIZI26QVZJ3wUROakg1REMMtEG78VmUnVbKHVbO3Eb5yyiu8Qzbu6iuMkhOrF_ELUUDKL8m9QIBOL-Ya_tMpK3lCSBuZT4FwZvh5QW7kZqchCKBD4Lu36AdVvIgJqYraKNXo_IJt0GMEQVMbFrhRat_6Rp_k9rizyvhh74soD7x-TzxiqNRNjoY/w320-h240/pexels-neo-evenger-1772575973-28209449.jpg",
@@ -18,5 +18,8 @@
     "count": 5,
     "autoplaySpeed": 5000
   },
-  "version": 1778256347686
+  "display": {
+    "showOnSites": []
+  },
+  "version": 1778256927496
 }
