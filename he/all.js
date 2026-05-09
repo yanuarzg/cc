@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (config.slider && config.slider.enabled && config.slider.subdomain) {
       html += '<div id="banner-slider" style="flex:1;min-width:0;padding:8px 0;">' +
         '<div id="slider-track" style="display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;' +
-        '-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:4px 4px 8px 4px;"></div>' +
+        '-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding:0.75rem;"></div>' +
         '</div>';
     }
 
