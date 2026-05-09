@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
         card.target = '_blank';
         card.rel = 'noopener';
         card.style.cssText = 'flex:0 0 calc(33.333% - 7px);min-width:0;scroll-snap-align:start;display:block;text-decoration:none;color:white;' +
-          'background:rgba(255,255,255,1);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);';
+          'background:rgba(255,255,255,1);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);max-width: 250px;';
         card.innerHTML = '<div style="width:100%;aspect-ratio:16/10;overflow:hidden;background:rgba(0,0,0,0.3);">' +
           '<img src="' + (article.thumbnail || '') + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display=\'none\'">' +
           '</div>' +
