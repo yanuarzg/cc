@@ -733,7 +733,10 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	    overflow: hidden;
 	    width: -webkit-fill-available;
 	    padding: 0!important;
-	}	
+	}
+	.page .elementor.elementor-23168 > *, .page footer#jl-footer-custpl > * > * {
+	    padding-inline: 1.5rem!important;
+	}
 }
 
 @media only screen and (max-width:450px) {
