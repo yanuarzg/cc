@@ -13,7 +13,7 @@
 // DOMAIN GROUPS — definisi sekali, pakai di semua widget
 // ============================================================
 const DOMAIN_GROUPS = {
-  'all': 
+'all': [
     'bali.harianexpress.com',
     'banten.harianexpress.com',
     'blitar.harianexpress.com',
@@ -45,8 +45,8 @@ const DOMAIN_GROUPS = {
     'video.harianexpress.com',
     'wanita.harianexpress.com',
     'www.harianexpress.com'
-  ,
-  'daerah': 
+  ],
+  'daerah': [
     'bali.harianexpress.com',
     'banten.harianexpress.com',
     'blitar.harianexpress.com',
@@ -56,7 +56,8 @@ const DOMAIN_GROUPS = {
     'jatim.harianexpress.com',
     'klaten.harianexpress.com',
     'lampung.harianexpress.com',
-    'tangsel.harianexpress.com',
+    'tangsel.harianexpress.com'
+    ]
 };
 
 document.addEventListener('DOMContentLoaded', function () {
