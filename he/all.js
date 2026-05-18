@@ -13,9 +13,9 @@
 // DOMAIN GROUPS — definisi sekali, pakai di semua widget
 // ============================================================
 const DOMAIN_GROUPS = {
-'all': 'bali.harianexpress.com,banten.harianexpress.com,blitar.harianexpress.com,bogor.harianexpress.com,bola.harianexpress.com,depok.harianexpress.com,edu.harianexpress.com,en.harianexpress.com,entertainment.harianexpress.com,finance.harianexpress.com,foto.harianexpress.com,health.harianexpress.com,humaniora.harianexpress.com,jakarta.harianexpress.com,jatim.harianexpress.com,klaten.harianexpress.com,lampung.harianexpress.com,lifestyle.harianexpress.com,nature.harianexpress.com,olahraga.harianexpress.com,otomotif.harianexpress.com,properti.harianexpress.com,tangsel.harianexpress.com,tanya.harianexpress.com,tekno.harianexpress.com,travel.harianexpress.com,umkm.harianexpress.com,video.harianexpress.com,wanita.harianexpress.com,www.harianexpress.com',
+'all': 'bali.harianexpress.com,banten.harianexpress.com,blitar.harianexpress.com,bogor.harianexpress.com,bola.harianexpress.com,depok.harianexpress.com,edu.harianexpress.com,en.harianexpress.com,entertainment.harianexpress.com,finance.harianexpress.com,foto.harianexpress.com,health.harianexpress.com,humaniora.harianexpress.com,jakarta.harianexpress.com,jatim.harianexpress.com,kaltim.harianexpress.com,klaten.harianexpress.com,lampung.harianexpress.com,lifestyle.harianexpress.com,nature.harianexpress.com,olahraga.harianexpress.com,otomotif.harianexpress.com,properti.harianexpress.com,tangsel.harianexpress.com,tanya.harianexpress.com,tekno.harianexpress.com,travel.harianexpress.com,umkm.harianexpress.com,video.harianexpress.com,wanita.harianexpress.com,www.harianexpress.com',
 
-  'daerah': 'bali.harianexpress.com,banten.harianexpress.com,blitar.harianexpress.com,bogor.harianexpress.com,depok.harianexpress.com,jakarta.harianexpress.com,jatim.harianexpress.com,klaten.harianexpress.com,lampung.harianexpress.com,tangsel.harianexpress.com'
+  'daerah': 'bali.harianexpress.com,banten.harianexpress.com,blitar.harianexpress.com,bogor.harianexpress.com,depok.harianexpress.com,jakarta.harianexpress.com,jatim.harianexpress.com,kaltim.harianexpress.com,klaten.harianexpress.com,lampung.harianexpress.com,tangsel.harianexpress.com'
 };
 
 document.addEventListener('DOMContentLoaded', function () {
