@@ -1,0 +1,24 @@
+.card {max-width:320px;} .flex {display: flex;} .g-1 {gap: 1rem;} .g-2 {gap: 2rem;} .fd-c {flex-direction: column;} .ac-c {align-content: center;} .ai-c {align-items: center;} .jc-sb {justify-content: space-between;} .jc-se {justify-content: space-evenly;} .jc-c {justify-content: center;} .br-05 {border-radius: 0.5rem;} .br-b-05 {border-radius: 0 0 0.5rem 0.5rem;} .shadow {box-shadow: -1px 5px 30px -12px black;} .mx-w-20 {max-width: 20rem;} .mn-w-20 {min-width: 20rem;} .mx-w-200 {max-width: 200px;} .w-fill {width: -webkit-fill-available;width: -moz-available;} .w-max {width: 100%;} .relative {position: relative;} .m-1 {margin: 1rem;} .mt-0 {margin-top:0} .mt-1 {margin-top: 1rem;} .mt-2 {margin-top:2rem;} .my-1 {margin-top:1rem;margin-bottom:1rem;} .p-1 {padding: 1rem;} .p-2 {padding: 2rem;} .px-2 {padding-left: 2rem; padding-right: 2rem;} .pt-0 {padding-top:0;} .px-3 {padding-left: 3rem; padding-right: 3rem;} .py-1 {padding-top: 1rem; padding-bottom: 1rem;} .py-1-05 {padding-top: 1.5rem; padding-bottom: 1.5rem;} .py-2 {padding-top: 2rem; padding-bottom: 2rem;} .fw-700 {font-weight: 700;} .ta-c {text-align: center;} .td-nn {text-decoration: none;} .c-ff {color: white!important;} .bc-f90, .bc-oren {background-color: #f90;} .bc-eee {background-color: #eee;} .bc-hijau {background-color: #46ce1c;} .ov-hidden {overflow:hidden;}
+
+@media only screen and (max-width: 768px) {  
+  .single #main .post h2, .single #main .post h3, .single #main .post h4 {
+    font-size: 2rem;
+  }
+  .single #main .post h3 {font-size: 1.75rem;}
+  .single #main .post h4 {font-size: 1.5rem;}
+  .fusion-text {
+    margin-inline: 1rem;
+  }
+  .single .fusion-title h2 {
+    font-size: 2rem!important;
+  }
+  .single .fusion-imageframe img:not(#main .fusion-imageframe img) {
+    max-width: 4rem;
+    margin-inline: 1rem;
+  }
+  .single .width-100 .fusion-fullwidth {    padding: 0rem;
+    overflow-wrap: anywhere;
+    text-wrap-style: pretty;
+  }
+  .card {max-width:-webkit-fill-available;max-width: -moz-available;} .fd-r {flex-direction: column;}
+}
