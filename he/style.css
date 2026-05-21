@@ -92,6 +92,10 @@ blockquote:after, .note:after, .success:after, .warning:after, .danger:after { c
     max-width: var(--content-width)!important;
 }
 
+#top-headline .nothumb .post-img {
+    display: none;
+}
+
 body, body * {
 	font-family: sans-serif!important;
 }
