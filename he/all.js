@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '?per_page=' + count + '&offset=' + offset
             + '&orderby=date&order=desc'
             + '&_embed=wp:featuredmedia'
-            + '&_fields=id,title,link,date,featured_media,_embedded,_links';
+            + '&_fields=id,title,link,date,featured_media,categories,_embedded,_links';
     if (catId) url += '&categories=' + catId;
 
     var controller = new AbortController();
@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
           rawDate : post.date,
           date    : new Date(post.date).toLocaleDateString('id-ID'),
           source  : source,
+          categories : post.categories || [],
           img     : extractWPThumbnail(post, mediaMap) || config.PLACEHOLDER
         };
       });
@@ -446,18 +447,34 @@ document.addEventListener('DOMContentLoaded', function () {
       return value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     },
 
+    parseCategories: function (value) {
+      if (!value) return [];
+    
+      return value
+        .split(',')
+        .map(function (cat) { return cat.trim(); })
+        .filter(Boolean);
+    },
+
     registerWPContainer: function (container) {
       var sourcesRaw = container.dataset.sources || 'all';
       var sources = this.resolveDomains(sourcesRaw);
-      var category = container.dataset.category || '';
+      
+      var categoryRaw = container.dataset.category || '';
+      var categories = this.parseCategories(categoryRaw);
+      var categoryMatch = (container.dataset.categoryMatch || 'or').toLowerCase();
+      
       var start = parseInt(container.dataset.start) || 1;
       var count = parseInt(container.dataset.items) || 10;
-      var key = sources.sort().join(',') + '::' + category;
+      
+      var categoryKey = categories.join('|');
+      var key = sources.sort().join(',') + '::' + categoryKey + '::' + categoryMatch;
 
       if (!this.wpGroups.has(key)) {
         this.wpGroups.set(key, {
           sources: sources,
-          category: category,
+          categories: categories,
+          categoryMatch: categoryMatch,
           containers: [],
           totalNeeded: 0,
           data: null
@@ -492,7 +509,12 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       var fetchCount = group.totalNeeded;
-      var posts = await this.fetchFromSources(group.sources, group.category, fetchCount);
+      var posts = await this.fetchFromSources(
+        group.sources,
+        group.categories,
+        group.categoryMatch,
+        fetchCount
+      );
 
       if (posts.length > 0) {
         posts.sort(function (a, b) { return new Date(b.rawDate) - new Date(a.rawDate); });
@@ -502,48 +524,111 @@ document.addEventListener('DOMContentLoaded', function () {
       this.distributeToWidgets(group, posts);
     },
 
-    fetchFromSources: async function (sources, category, count) {
+    fetchFromSources: async function (sources, categories, categoryMatch, count) {
       var CONCURRENCY = 6;
-      var catIds = {};
-      if (category) {
-        var self = this;
+      var self = this;
+      var catIdsBySource = {};
+    
+      categories = categories || [];
+      categoryMatch = categoryMatch || 'or';
+    
+      if (categories.length > 0) {
         var catPromises = sources.map(async function (src) {
-          var cid = await self.getCatId(src, category);
-          if (cid) catIds[src] = cid;
+          var ids = await self.getCatIds(src, categories);
+          catIdsBySource[src] = ids;
         });
+    
         await Promise.allSettled(catPromises);
       }
-
+    
       var results = [];
+    
       for (var i = 0; i < sources.length; i += CONCURRENCY) {
         var batch = sources.slice(i, i + CONCURRENCY);
-        var batchPromises = batch.map(function (src) {
-          return fetchWPOptimized(src, category ? (catIds[src] || null) : null, count, 0, null);
+    
+        var batchPromises = batch.map(async function (src) {
+          var ids = catIdsBySource[src] || [];
+    
+          if (categories.length > 0 && ids.length === 0) {
+            return [];
+          }
+    
+          var fetchCount = categoryMatch === 'and' ? Math.max(count * 3, 20) : count;
+          var catParam = ids.length ? ids.join(',') : null;
+    
+          var posts = await fetchWPOptimized(src, catParam, fetchCount, 0, null);
+    
+          if (categoryMatch === 'and' && ids.length > 1) {
+            posts = posts.filter(function (post) {
+              var postCats = post.categories || [];
+              return ids.every(function (id) {
+                return postCats.indexOf(id) !== -1;
+              });
+            });
+          }
+    
+          return posts;
         });
+    
         var batchResults = await Promise.allSettled(batchPromises);
+    
         batchResults.forEach(function (r) {
-          if (r.status === 'fulfilled') results.push.apply(results, r.value);
+          if (r.status === 'fulfilled') {
+            results.push.apply(results, r.value);
+          }
         });
       }
+    
       return results;
     },
 
-    getCatId: async function (source, categoryName) {
-      var catCacheKey = 'catid_' + source + '_' + categoryName;
-      var catId = getCached(catCacheKey);
-      if (catId !== null && catId !== undefined) return catId;
-      try {
-        var res = await fetch(
-          'https://' + source + '/wp-json/wp/v2/categories?search=' + encodeURIComponent(categoryName) + '&per_page=1&_fields=id'
-        );
-        if (!res.ok) return null;
-        var cats = await res.json();
-        catId = (cats[0] && cats[0].id) ? cats[0].id : null;
-        setCache(catCacheKey, catId, 30 * 60 * 1000); // cache 30 menit
-        return catId;
-      } catch (e) {
-        return null;
-      }
+    getCatIds: async function (source, categoryNames) {
+      var self = this;
+    
+      var promises = categoryNames.map(async function (categoryName) {
+        var catCacheKey = 'catid_' + source + '_' + categoryName.toLowerCase();
+        var cachedId = getCached(catCacheKey);
+    
+        if (cachedId !== null && cachedId !== undefined) {
+          return cachedId;
+        }
+    
+        try {
+          var res = await fetch(
+            'https://' + source +
+            '/wp-json/wp/v2/categories?search=' +
+            encodeURIComponent(categoryName) +
+            '&per_page=100&_fields=id,name,slug'
+          );
+    
+          if (!res.ok) return null;
+    
+          var cats = await res.json();
+          var normalized = categoryName.toLowerCase();
+    
+          var matched = cats.find(function (cat) {
+            return (
+              String(cat.name || '').toLowerCase() === normalized ||
+              String(cat.slug || '').toLowerCase() === normalized ||
+              String(cat.slug || '').toLowerCase() === normalized.replace(/\s+/g, '-')
+            );
+          });
+    
+          var catId = matched ? matched.id : null;
+    
+          setCache(catCacheKey, catId, 30 * 60 * 1000);
+          return catId;
+    
+        } catch (e) {
+          return null;
+        }
+      });
+    
+      var ids = await Promise.all(promises);
+    
+      return ids.filter(function (id) {
+        return id !== null && id !== undefined;
+      });
     },
 
     distributeToWidgets: function (group, allPosts) {
