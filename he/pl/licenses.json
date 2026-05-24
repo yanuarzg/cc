@@ -1,6 +1,10 @@
 {
   "domains": [
     "geky.page.gd",
+    "imnu.biz.id",
+    "*.imnu.biz.id",
+    "lifenews.biz.id",
+    "*.lifenews.biz.id",
     "harianexpress.com",
     "*.harianexpress.com",
     "harianexpress.id",
