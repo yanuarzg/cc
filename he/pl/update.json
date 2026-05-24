@@ -1,8 +1,8 @@
 {
   "name": "HarianExpress AI Journalist Pro Tools",
   "slug": "harianexpress-journalist",
-  "version": "3.1.10",
-  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.10.zip",
+  "version": "3.2.0",
+  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.2.0.zip",
   "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
   "tested": "6.7",
@@ -11,6 +11,6 @@
   "author": "YZG / HarianExpress Redaksi",
   "sections": {
     "description": "AI Journalist Pro Tools untuk jaringan HarianExpress.",
-    "changelog": "<h4>v3.1.10</h4><ul><li>Tambah mode sumber URL terkunci: teks artikel sumber diambil langsung oleh WordPress sebelum dikirim ke AI.</li><li>Jika ekstraksi URL berhasil, AI tidak memakai pencarian tambahan agar tanggal, angka, nama narasumber, dan kutipan lebih akurat.</li><li>Perketat aturan agar data pasti dan kutipan langsung wajib sama persis dengan artikel sumber.</li></ul>"
+    "changelog": "<h4>v3.2.0</h4><ul><li>Upgrade besar UI/UX Generator Artikel.</li><li>Tambah workflow bar 3 langkah, panel lebih bersih, action row lebih jelas, dan pratinjau artikel lebih nyaman dibaca.</li><li>Perbaikan responsive mobile agar tools utama tidak tertutup floating/sticky panel.</li></ul>"
   }
 }
