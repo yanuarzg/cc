@@ -1,15 +1,16 @@
 {
   "name": "HarianExpress AI Journalist Pro Tools",
   "slug": "harianexpress-journalist",
-  "version": "3.1.3",
-  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.3.zip",
-  "homepage": "https://github.com/yanuarzg/cc/tree/main/he/pl/",
+  "version": "3.1.4",
+  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.4.zip",
+  "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
   "tested": "6.7",
   "requires_php": "7.4",
-  "last_updated": "2026-05-24 00:00:00",
+  "last_updated": "2026-05-24 10:00:00",
+  "author": "YZG / HarianExpress Redaksi",
   "sections": {
-    "description": "AI Journalist Pro Tools untuk HarianExpress.",
-    "changelog": "<h4>v3.1.3</h4><ul><li>Dropdown bahasa Indonesia/English.</li><li>Preview gambar sumber.</li><li>Self-hosted update checker.</li></ul>"
+    "description": "AI Journalist Pro Tools untuk jaringan HarianExpress.",
+    "changelog": "<h4>v3.1.4</h4><ul><li>Lisensi domain kini dibaca dari GitHub licenses.json.</li><li>Tambah contoh licenses.json untuk penambahan domain pembeli lisensi tanpa rilis ulang plugin.</li></ul>"
   }
 }
