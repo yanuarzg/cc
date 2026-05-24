@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YzTheme — Jasa Website Profesional | Custom Blogger & WordPress</title>
+  <meta name="description" content="YzTheme: Jasa pembuatan website, custom template Blogger, custom theme WordPress, maintenance, SEO, dan publikasi website profesional." />
+  <meta name="keywords" content="yztheme, blogger, wordpress, custom template, custom theme, jasa website, manage website" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════ CANVAS -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ═══════════════════════════════════════════ CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-trail" id="cursor-trail"></div>
+
+  <!-- ═══════════════════════════════════════════ NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-y">Yz</span><span class="logo-t">Theme</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#services">Layanan</a></li>
+        <li><a href="#portfolio">Template</a></li>
+        <li><a href="#pricing">Harga</a></li>
+        <li><a href="#contact" class="nav-cta">Hubungi Kami</a></li>
+      </ul>
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="#services">Layanan</a></li>
+      <li><a href="#portfolio">Template</a></li>
+      <li><a href="#pricing">Harga</a></li>
+      <li><a href="#contact">Hubungi Kami</a></li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SCROLL CONTAINER -->
+  <div id="scroll-container">
+
+    <!-- ─────────────── SCENE 1: HERO -->
+    <section class="scene" id="hero">
+      <div class="scene-content hero-content">
+        <div class="hero-badge">✦ Digital Agency & Web Studio</div>
+        <h1 class="hero-title">
+          <span class="line" data-text="Bangun Website">Bangun Website</span>
+          <span class="line accent" data-text="Profesional">Profesional</span>
+          <span class="line" data-text="dengan YzTheme">dengan YzTheme</span>
+        </h1>
+        <p class="hero-sub">
+          Dari Blogger hingga WordPress — kami rancang, bangun,<br />
+          dan kelola digital presence Anda.
+        </p>
+        <div class="hero-actions">
+          <a href="#services" class="btn-primary">Lihat Layanan ↓</a>
+          <a href="#pricing" class="btn-ghost">Lihat Paket Harga</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num">200+</span><span class="stat-label">Project Selesai</span></div>
+          <div class="stat-div"></div>
+          <div class="stat"><span class="stat-num">5★</span><span class="stat-label">Rating Klien</span></div>
+          <div class="stat-div"></div>
+          <div class="stat"><span class="stat-num">3 Thn</span><span class="stat-label">Pengalaman</span></div>
+        </div>
+      </div>
+      <div class="scroll-hint">
+        <span>Scroll untuk menjelajahi</span>
+        <div class="scroll-line"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────── SCENE 2: BLOGGER & WORDPRESS -->
+    <section class="scene" id="services">
+      <div class="scene-content">
+        <div class="section-label">— 01 / Layanan Utama</div>
+        <h2 class="section-title">Platform<br /><em>yang Kami Kuasai</em></h2>
+        <div class="platform-grid">
+          <div class="platform-card" data-platform="blogger">
+            <div class="platform-icon">
+              <svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#FF5722" fill-opacity=".15"/><path d="M16 14h10a6 6 0 0 1 6 6v1a3 3 0 0 1-3 3h1a6 6 0 0 1 6 6v1a6 6 0 0 1-6 6H16V14z" stroke="#FF7043" stroke-width="1.5" stroke-linejoin="round"/><path d="M22 20h4M22 28h8" stroke="#FF7043" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Custom Template<br />Blogger</h3>
+            <p>Template Blogger premium yang ringan, SEO-friendly, dan tampilan modern. Desain eksklusif sesuai brand Anda.</p>
+            <ul class="feature-list">
+              <li>Mobile Responsive</li>
+              <li>PageSpeed Optimal</li>
+              <li>Schema Markup</li>
+              <li>Dark / Light Mode</li>
+            </ul>
+            <div class="card-glow blogger-glow"></div>
+          </div>
+          <div class="platform-card featured" data-platform="wordpress">
+            <div class="featured-tag">Most Popular</div>
+            <div class="platform-icon">
+              <svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#21759B" fill-opacity=".15"/><circle cx="24" cy="24" r="12" stroke="#42A5F5" stroke-width="1.5"/><path d="M12 24h4M32 24h4M24 12v4M24 32v4" stroke="#42A5F5" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="24" r="4" stroke="#42A5F5" stroke-width="1.5"/></svg>
+            </div>
+            <h3>Custom Theme<br />WordPress</h3>
+            <p>Theme WordPress dari nol atau modifikasi tema premium. Performa tinggi, keamanan terjaga, dan mudah dikelola.</p>
+            <ul class="feature-list">
+              <li>WooCommerce Ready</li>
+              <li>Gutenberg Blocks</li>
+              <li>Security Hardening</li>
+              <li>Plugin Integration</li>
+            </ul>
+            <div class="card-glow wp-glow"></div>
+          </div>
+          <div class="platform-card" data-platform="web">
+            <div class="platform-icon">
+              <svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#7C4DFF" fill-opacity=".15"/><rect x="10" y="14" width="28" height="20" rx="3" stroke="#9C64FF" stroke-width="1.5"/><path d="M10 20h28M17 14v4M31 14v4" stroke="#9C64FF" stroke-width="1.5" stroke-linecap="round"/><path d="M18 27l4-4 4 4 5-6" stroke="#9C64FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Pembuatan<br />Website</h3>
+            <p>Website company profile, portofolio, landing page, atau toko online. Full custom dari desain hingga go-live.</p>
+            <ul class="feature-list">
+              <li>UI/UX Modern</li>
+              <li>CMS Integration</li>
+              <li>Hosting Setup</li>
+              <li>SSL & Domain</li>
+            </ul>
+            <div class="card-glow web-glow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── SCENE 3: MAINTENANCE & SEO -->
+    <section class="scene" id="maintenance">
+      <div class="scene-content split-layout">
+        <div class="split-left">
+          <div class="section-label">— 02 / Support & Growth</div>
+          <h2 class="section-title">Kami Jaga<br /><em>Website Anda</em></h2>
+          <p class="split-desc">Setelah launch, website butuh perawatan rutin dan optimasi agar terus performa. YzTheme hadir sebagai mitra jangka panjang Anda.</p>
+          <div class="service-pills">
+            <div class="pill active">
+              <div class="pill-icon">🛡️</div>
+              <div>
+                <strong>Maintenance Website</strong>
+                <span>Update rutin, backup, monitoring uptime</span>
+              </div>
+            </div>
+            <div class="pill">
+              <div class="pill-icon">🔍</div>
+              <div>
+                <strong>SEO Basic</strong>
+                <span>On-page SEO, meta tags, sitemap, indexing</span>
+              </div>
+            </div>
+            <div class="pill">
+              <div class="pill-icon">🚀</div>
+              <div>
+                <strong>Publikasi & Support</strong>
+                <span>Deploy, domain setup, email support 24/7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="split-right">
+          <div class="metrics-card">
+            <div class="metrics-header">
+              <span class="metrics-dot green"></span>
+              <span class="metrics-dot yellow"></span>
+              <span class="metrics-dot red"></span>
+              <span class="metrics-title">site-performance.yz</span>
+            </div>
+            <div class="metrics-body">
+              <div class="metric-row">
+                <span>Performance</span>
+                <div class="metric-bar"><div class="metric-fill" style="--w:96%">96</div></div>
+              </div>
+              <div class="metric-row">
+                <span>SEO Score</span>
+                <div class="metric-bar"><div class="metric-fill seo" style="--w:94%">94</div></div>
+              </div>
+              <div class="metric-row">
+                <span>Accessibility</span>
+                <div class="metric-bar"><div class="metric-fill acc" style="--w:91%">91</div></div>
+              </div>
+              <div class="metric-row">
+                <span>Best Practices</span>
+                <div class="metric-bar"><div class="metric-fill bp" style="--w:100%">100</div></div>
+              </div>
+              <div class="metrics-footer">
+                <span class="uptime">✓ 99.9% Uptime Terjamin</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── SCENE 4: PRICING -->
+    <section class="scene" id="pricing">
+      <div class="scene-content">
+        <div class="section-label">— 03 / Investasi Terbaik</div>
+        <h2 class="section-title">Paket Harga<br /><em>Transparan</em></h2>
+        <p class="pricing-sub">Pilih paket yang sesuai kebutuhan. Semua paket sudah include konsultasi gratis.</p>
+        <div class="pricing-grid">
+
+          <div class="price-card">
+            <div class="price-tier">Starter</div>
+            <div class="price-amount">
+              <span class="price-from">Mulai dari</span>
+              <span class="price-num">Rp 299K</span>
+            </div>
+            <ul class="price-features">
+              <li>✓ Custom Template Blogger</li>
+              <li>✓ Mobile Responsive</li>
+              <li>✓ SEO On-page Basic</li>
+              <li>✓ 1x Revisi</li>
+              <li>✓ Support 7 Hari</li>
+              <li class="muted">✗ Maintenance Bulanan</li>
+              <li class="muted">✗ Custom Domain Setup</li>
+            </ul>
+            <a href="#contact" class="price-btn ghost-btn">Pilih Paket</a>
+          </div>
+
+          <div class="price-card popular">
+            <div class="popular-badge">⚡ Terpopuler</div>
+            <div class="price-tier">Professional</div>
+            <div class="price-amount">
+              <span class="price-from">Mulai dari</span>
+              <span class="price-num">Rp 799K</span>
+            </div>
+            <ul class="price-features">
+              <li>✓ Custom Theme WordPress</li>
+              <li>✓ Mobile Responsive</li>
+              <li>✓ SEO Lengkap + Sitemap</li>
+              <li>✓ 3x Revisi</li>
+              <li>✓ Support 30 Hari</li>
+              <li>✓ Maintenance 1 Bulan</li>
+              <li>✓ Domain + Hosting Setup</li>
+            </ul>
+            <a href="#contact" class="price-btn primary-btn">Pilih Paket</a>
+            <div class="price-glow"></div>
+          </div>
+
+          <div class="price-card">
+            <div class="price-tier">Enterprise</div>
+            <div class="price-amount">
+              <span class="price-from">Mulai dari</span>
+              <span class="price-num">Rp 2.5Jt</span>
+            </div>
+            <ul class="price-features">
+              <li>✓ Website Full Custom</li>
+              <li>✓ UI/UX Design Eksklusif</li>
+              <li>✓ SEO Advanced</li>
+              <li>✓ Unlimited Revisi</li>
+              <li>✓ Support 3 Bulan</li>
+              <li>✓ Maintenance 3 Bulan</li>
+              <li>✓ Publikasi + Training</li>
+            </ul>
+            <a href="#contact" class="price-btn ghost-btn">Hubungi Kami</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── SCENE 5: CTA FINAL -->
+    <section class="scene" id="contact">
+      <div class="scene-content cta-content">
+        <div class="cta-eyebrow">✦ Siap Memulai?</div>
+        <h2 class="cta-title">
+          Wujudkan Website<br />
+          <em>Impian Anda</em><br />
+          Bersama YzTheme
+        </h2>
+        <p class="cta-desc">
+          Konsultasi gratis. Tanpa biaya tersembunyi.<br />
+          Hubungi kami sekarang dan dapatkan estimasi harga dalam 1x24 jam.
+        </p>
+        <a
+          href="https://wa.me/6285156121988?text=Halo%20YzTheme%2C%20saya%20ingin%20konsultasi%20jasa%20website"
+          target="_blank"
+          rel="noopener"
+          class="whatsapp-btn"
+          id="wa-btn"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Chat WhatsApp Sekarang
+        </a>
+        <div class="cta-trust">
+          <span>🔒 Privasi Terjaga</span>
+          <span>⚡ Respon Cepat</span>
+          <span>💯 Garansi Kepuasan</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── FOOTER -->
+    <footer id="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="logo"><span class="logo-y">Yz</span><span class="logo-t">Theme</span></span>
+          <p>Jasa pembuatan & pengelolaan website<br />profesional untuk bisnis Anda.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <strong>Layanan</strong>
+            <a href="#">Custom Blogger</a>
+            <a href="#">Custom WordPress</a>
+            <a href="#">Pembuatan Website</a>
+            <a href="#">Maintenance</a>
+            <a href="#">SEO Basic</a>
+          </div>
+          <div class="footer-col">
+            <strong>Platform</strong>
+            <a href="https://yztheme.my.id" target="_blank">YzTheme Store</a>
+            <a href="#">Demo Template</a>
+            <a href="#">Portofolio</a>
+          </div>
+          <div class="footer-col">
+            <strong>Kontak</strong>
+            <a href="https://wa.me/6285156121988" target="_blank">WhatsApp</a>
+            <a href="#">Email Support</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 YzTheme. All rights reserved.</span>
+        <span>Dibuat dengan ❤️ di Indonesia</span>
+      </div>
+    </footer>
+
+  </div><!-- /scroll-container -->
+
+  <script src="script.js"></script>
+</body>
+</html>
