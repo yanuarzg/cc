@@ -1,16 +1,15 @@
 {
   "name": "HarianExpress AI Journalist Pro Tools",
   "slug": "harianexpress-journalist",
-  "version": "3.2.0",
-  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.2.0.zip",
+  "version": "3.3.10",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/harianexpress-journalist-v3.3.10.zip",
   "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
-  "tested": "6.7",
+  "tested": "6.8",
   "requires_php": "7.4",
-  "last_updated": "2026-05-24 18:00:00",
-  "author": "YZG / HarianExpress Redaksi",
+  "last_updated": "2026-05-24 00:00:00",
   "sections": {
-    "description": "AI Journalist Pro Tools untuk jaringan HarianExpress.",
-    "changelog": "<h4>v3.2.0</h4><ul><li>Upgrade besar UI/UX Generator Artikel.</li><li>Tambah workflow bar 3 langkah, panel lebih bersih, action row lebih jelas, dan pratinjau artikel lebih nyaman dibaca.</li><li>Perbaikan responsive mobile agar tools utama tidak tertutup floating/sticky panel.</li></ul>"
+    "description": "AI Journalist Pro Tools untuk HarianExpress.",
+    "changelog": "<h4>v3.3.10</h4><ul><li>Audit caption foto ist/istimewa kini bersifat warning.</li><li>Optimasi gambar pilihan: resize, kompres, dan WebP otomatis jika server mendukung.</li><li>Perbaikan posisi source tools dan audit fakta.</li></ul>"
   }
 }
