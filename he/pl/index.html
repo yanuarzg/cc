@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HarianExpress AI Journalist Pro Tools v3.2.8 — Plugin WordPress AI untuk Redaksi Modern</title>
-    <meta name="description" content="Plugin WordPress AI untuk membuat artikel berita, rewrite, SEO content, draft sosial media, skrip video, dan manajemen network subdomain. Dukung Gemini, Grok/xAI, Z.AI.">
+    <title>HarianExpress AI Journalist Pro Tools v3.3.10 — Plugin WordPress AI untuk Redaksi Modern</title>
+    <meta name="description" content="Plugin WordPress AI untuk artikel berita, rewrite, audit fakta, SEO, gambar, sosmed, dan manajemen subdomain. Dukung Gemini, Grok/xAI, Z.AI, Groq.">
     <style>
         :root {
             --radius: 12px;
@@ -16,7 +16,6 @@
             --max-w: 1200px;
         }
 
-        /* Light theme (default) */
         .light {
             --bg: #f8f9fc;
             --bg2: #ffffff;
@@ -40,7 +39,6 @@
             --code-text: #333;
         }
 
-        /* Dark theme */
         .dark {
             --bg: #0a0a0f;
             --bg2: #111119;
@@ -179,10 +177,6 @@
             padding: 16px 18px; font-family: var(--mono); font-size: 0.8rem; color: var(--code-text);
             overflow-x: auto; white-space: pre-wrap; line-height: 1.6; margin: 10px 0;
         }
-        .code-block .key { color: #f9a8d4; }
-        .code-block .val { color: #86efac; }
-        .code-block .str { color: #fde68a; }
-        .code-block .comment { color: #555; }
 
         .status-demo { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
         .status-demo span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; }
@@ -218,13 +212,11 @@
             .flow-arrow { display: none; }
             .flow-steps { gap: 10px; }
             .flow-step { min-width: 70px; flex: 1 1 80px; max-width: 120px; padding: 12px 10px; }
-            .nav-links { gap: 12px; font-size: 0.78rem; }
             .cards-grid { grid-template-columns: 1fr; }
             .pricing-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .hero h1 { font-size: 1.5rem; }
-            .hero p { font-size: 0.9rem; }
             .btn { padding: 11px 20px; font-size: 0.85rem; }
             .navbar .container { flex-direction: column; gap: 8px; }
         }
@@ -240,7 +232,6 @@
 
     <!-- SVG SPRITE -->
     <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
-        <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4l.5-2.5L9 9"/><circle cx="19" cy="5" r="1" fill="currentColor" stroke="none"/></symbol>
         <symbol id="icon-pencil" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
         <symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol>
         <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
@@ -248,7 +239,6 @@
         <symbol id="icon-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
         <symbol id="icon-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
         <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><polyline points="21 15 16 10 5 21"/></symbol>
-        <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 2v7"/><path d="M8 6h8"/><circle cx="12" cy="16" r="3"/><line x1="12" y1="19" x2="12" y2="22"/></symbol>
         <symbol id="icon-bird" viewBox="0 0 24 24"><path d="M23 1s-4 1-8 3C12 2 9 4 5 6 2 8 1 12 1 12s2 1 5 2c-1 3-2 5-1 7 3-2 6-4 10-6 3-1 6-2 8-3l-3-5 3-6z"/></symbol>
         <symbol id="icon-clapperboard" viewBox="0 0 24 24"><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M4 6l16-3v8H4z"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
@@ -258,11 +248,18 @@
         <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
         <symbol id="icon-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
         <symbol id="icon-smartphone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
-        <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
         <symbol id="icon-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></symbol>
         <symbol id="icon-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
         <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
         <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+        <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+        <symbol id="icon-bar-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+        <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+        <symbol id="icon-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+        <symbol id="icon-test-tube" viewBox="0 0 24 24"><path d="M14.5 2H9.5L3 22h18L14.5 2z"/><path d="M9 2h6v4H9z"/></symbol>
+        <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
     </svg>
 
     <nav class="navbar">
@@ -270,8 +267,7 @@
             <a href="#" class="nav-logo"><span class="icon-dot"></span> HarianExpress AI Journalist Pro</a>
             <ul class="nav-links">
                 <li><a href="#fitur">Fitur</a></li>
-                <li><a href="#source-lock">Akurasi</a></li>
-                <li><a href="#multi-ai">AI Provider</a></li>
+                <li><a href="#audit">Audit</a></li>
                 <li><a href="#network">Network</a></li>
                 <li><a href="#harga">Harga</a></li>
                 <li><a href="#harga" class="nav-cta"><svg class="icon"><use href="#icon-lock"/></svg> Beli Sekarang</a></li>
@@ -283,10 +279,10 @@
     <section class="hero">
         <div class="container">
             <span class="badge">
-                <svg class="icon"><use href="#icon-cpu"/></svg> Gemini · Grok/xAI · Z.AI <span style="margin:0 4px;color:var(--text3);">|</span> v3.2.8
+                <svg class="icon"><use href="#icon-cpu"/></svg> Gemini · Grok/xAI · Z.AI · Groq <span style="margin:0 4px;color:var(--text3);">|</span> v3.3.10
             </span>
             <h1>Plugin <span>AI Journalist</span> untuk WordPress & Media Online</h1>
-            <p>Ubah link sumber menjadi draft artikel berita siap SEO dalam satu dashboard. Dilengkapi source lock, safe paraphrase, multi AI, kirim ke draft, dan directory seluruh subdomain network.</p>
+            <p>Ubah link sumber menjadi draft berita siap SEO lengkap dengan audit fakta, quality score, gambar teroptimasi, dan riwayat generate. Dilengkapi multi AI provider, source lock, safe paraphrase, dan direktori seluruh subdomain network.</p>
             <div class="hero-buttons">
                 <a href="#harga" class="btn btn-primary"><svg class="icon"><use href="#icon-lock"/></svg> Dapatkan Plugin</a>
                 <a href="#fitur" class="btn btn-outline"><svg class="icon"><use href="#icon-clipboard"/></svg> Lihat Fitur Lengkap</a>
@@ -294,100 +290,82 @@
         </div>
     </section>
 
+    <!-- Fitur Utama -->
     <section class="section" id="fitur">
         <div class="container">
             <p class="section-label">Fitur Utama</p>
             <h2 class="section-title">Semua Kebutuhan Redaksi dalam Satu Plugin</h2>
-            <p class="section-subtitle">Dari generate artikel, jaga akurasi sumber, kelola SEO, hingga distribusi konten — semua terintegrasi.</p>
+            <p class="section-subtitle">Dari generate artikel, audit fakta, SEO, gambar, hingga distribusi konten — terintegrasi dan aman.</p>
             <div class="cards-grid">
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-pencil"/></svg></div><h4>AI Article Generator</h4><p>Buat artikel dari link sumber, teks mentah, atau keyword. Dukung gaya jurnalistik, straight news, rewrite, dan SEO.</p><span class="tag">Multi-sumber</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-cpu"/></svg></div><h4>Multi Provider AI</h4><p>Pilih Gemini, Grok/xAI, atau Z.AI langsung dari dashboard. Tidak terikat satu penyedia.</p><span class="tag">Fleksibel</span></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-pencil"/></svg></div><h4>AI Article Generator</h4><p>Buat artikel dari link, teks, atau keyword. Dukung gaya jurnalistik, straight news, rewrite, dan SEO.</p><span class="tag">Multi-sumber</span></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-cpu"/></svg></div><h4>Multi Provider AI</h4><p>Pilih Gemini, Grok/xAI, Z.AI, atau Groq langsung dari dashboard. Tidak terikat satu penyedia.</p><span class="tag">Fleksibel</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-lock"/></svg></div><h4>Source Lock</h4><p>Data penting seperti tanggal, nama, dan kutipan dijaga ketat agar AI tidak mengubahnya. Akurasi lebih terjamin.</p><span class="tag">Akurat</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-shield"/></svg></div><h4>Safe Paraphrase</h4><p>Fakta tetap sama, narasi dibuat unik agar konten lebih orisinal tanpa kehilangan informasi inti.</p><span class="tag">SEO Aman</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-clipboard"/></svg></div><h4>SEO Title, Slug & Meta</h4><p>Beberapa opsi judul SEO, slug, dan meta deskripsi. Pilih yang terbaik, langsung disimpan ke Yoast/Rank Math/SEOPress.</p><span class="tag">SEO-ready</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-send"/></svg></div><h4>Kirim ke Draft WordPress</h4><p>Satu klik kirim artikel lengkap + metadata + tags + kategori ke Draft. Tanpa copy-paste manual.</p><span class="tag">One-click</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-image"/></svg></div><h4>Preview Gambar Sumber</h4><p>Ambil gambar dari artikel sumber, filter otomatis hindari icon kecil & gambar tidak relevan (min. 320px).</p><span class="tag">Smart Filter</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-bird"/></svg></div><h4>Draft Sosial Media & Skrip Video</h4><p>Otomatis buat caption Instagram/Facebook, Twitter thread, dan skrip TikTok/Reels/Shorts dari artikel.</p><span class="tag">Distribusi</span></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-image"/></svg></div><h4>Gambar dari Sumber</h4><p>Multi-select gambar, filter otomatis, featured image, caption, credit, dan optimasi WebP.</p><span class="tag">Media</span></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-bird"/></svg></div><h4>Draft Sosial Media & Skrip Video</h4><p>Otomatis buat caption Instagram/Facebook, Twitter thread, dan skrip TikTok/Reels/Shorts.</p><span class="tag">Distribusi</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-refresh"/></svg></div><h4>Rotasi & Auto-block API Key</h4><p>Multi API key per provider, rotasi otomatis saat limit, dan auto-block key yang bocor/invalid.</p><span class="tag">Stabil</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-smartphone"/></svg></div><h4>UI Modern & Responsif</h4><p>Desain bersih tanpa gradient berlebihan, komponen seragam, dan nyaman di mobile.</p><span class="tag">UX</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-folder"/></svg></div><h4>Directory Subdomain A-Z</h4><p>Pantau semua subdomain network, artikel terbaru, status update warna, filter, sortir, dan pintasan cepat.</p><span class="tag">Network</span></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-folder"/></svg></div><h4>Directory Subdomain A-Z</h4><p>Pantau semua subdomain, artikel terbaru, status update warna, filter, sortir, dan pintasan cepat.</p><span class="tag">Network</span></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-save"/></svg></div><h4>Update Otomatis & Lisensi</h4><p>Self-hosted update dari GitHub, lisensi domain via licenses.json, dukungan wildcard, dan cache.</p><span class="tag">Pro</span></div>
             </div>
         </div>
     </section>
 
-    <section class="section" id="source-lock" style="background:var(--bg2);">
+    <!-- Fitur Audit & Kontrol Kualitas (v3.3.10) -->
+    <section class="section" id="audit" style="background:var(--bg2);">
         <div class="container">
-            <p class="section-label">Akurasi & Keamanan Konten</p>
-            <h2 class="section-title">Source Lock + Safe Paraphrase</h2>
-            <p class="section-subtitle">Dua fitur kunci untuk menjaga fakta tetap akurat sekaligus menghasilkan konten yang unik.</p>
-            <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px,1fr));">
-                <div class="card">
-                    <div class="card-icon"><svg class="icon"><use href="#icon-lock"/></svg></div>
-                    <h4>Source Lock untuk Link Artikel</h4>
-                    <p>Plugin mengambil teks asli dari URL sumber dan mengunci data penting agar AI tidak mengarang. Tanggal, angka, nama narasumber, dan kutipan langsung akan dipertahankan persis seperti sumber.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon"><svg class="icon"><use href="#icon-shield"/></svg></div>
-                    <h4>Safe Paraphrase</h4>
-                    <p>Fakta dijaga, kutipan tetap verbatim, tetapi narasi di luar kutipan disusun ulang dengan struktur kalimat baru. Hasilnya: artikel orisinal yang aman dari duplikasi, tanpa kehilangan informasi penting.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="multi-ai">
-        <div class="container">
-            <p class="section-label">Multi AI & Keamanan API</p>
-            <h2 class="section-title">Dukungan Gemini, Grok/xAI, Z.AI</h2>
-            <p class="section-subtitle">Fleksibel memilih provider AI, dengan sistem rotasi dan auto-block API key yang aman.</p>
+            <p class="section-label">Baru di v3.3.10</p>
+            <h2 class="section-title">Audit Fakta, Quality Score & Workflow Gambar</h2>
+            <p class="section-subtitle">Fitur kontrol kualitas sebelum artikel masuk Draft WordPress.</p>
             <div class="cards-grid">
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-cpu"/></svg></div><h4>Dropdown Pilih AI</h4><p>Di halaman generator, tersedia dropdown <strong>Pilih AI</strong>: Gemini, Grok/xAI, Z.AI. Bisa berganti provider kapan saja.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-refresh"/></svg></div><h4>Rotasi & Retry Otomatis</h4><p>Beberapa API key per provider (satu per baris). Jika satu key limit/high demand/timeout, plugin coba key lain dan retry.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-shield"/></svg></div><h4>Auto-block Key Bermasalah</h4><p>Key yang bocor, invalid, expired, atau forbidden otomatis ditandai dan dilewati pada request berikutnya.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-save"/></svg></div><h4>Masking & Tidak Ada Default Key</h4><p>API key ditampilkan tersensor. Tidak ada key bawaan di ZIP, semuanya diinput manual via Pengaturan API.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-search"/></svg></div><h4>Audit Fakta Sebelum Draft</h4><p>Panel periksa kutipan, tanggal, angka, dan sumber. Item yang aman disembunyikan otomatis.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-bar-chart"/></svg></div><h4>Quality Score & Deteksi Duplikasi</h4><p>Skor kualitas artikel dan peringatan jika kemiripan narasi >50%. Bisa parafrase ulang.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-camera"/></svg></div><h4>Multi‑select Gambar & Featured Image</h4><p>Pilih beberapa gambar sumber, urutan pertama jadi featured image, sisanya masuk konten.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-download"/></svg></div><h4>Auto Compress & WebP</h4><p>Resize, kompres, dan konversi ke WebP otomatis. Fallback ke asli jika gagal.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-history"/></svg></div><h4>Riwayat Generate</h4><p>Catat 20 riwayat terakhir + pagination. Lihat judul, sumber, provider, status draft.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-test-tube"/></svg></div><h4>Test API Key & Prompt Custom</h4><p>Test setiap provider langsung, dan tambahkan instruksi global tanpa edit kode.</p></div>
             </div>
         </div>
     </section>
 
-    <section class="section" id="network" style="background:var(--bg2);">
+    <!-- Network Subdomain -->
+    <section class="section" id="network">
         <div class="container">
             <p class="section-label">Network Subdomain</p>
             <h2 class="section-title">Directory A-Z & Monitoring Kanal</h2>
             <p class="section-subtitle">Pantau seluruh subdomain media Anda dalam satu halaman, lengkap dengan filter, sortir, dan status update warna.</p>
             <div class="cards-grid">
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-folder"/></svg></div><h4>Directory A-Z Subdomain</h4><p>Daftar subdomain dari <code>DOMAIN_GROUPS.all</code>, dengan search, filter grup, sortir A-Z, terbaru, artikel terbanyak/tersedikit.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-link"/></svg></div><h4>Pintasan Cepat</h4><p>Tombol buka website, login (/pinarak.php), dashboard WP, dan tools AI Journalist langsung ke subdomain terkait.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-link"/></svg></div><h4>Pintasan Cepat</h4><p>Tombol buka website dan login (/pinarak.php) langsung ke subdomain terkait.</p></div>
                 <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-newspaper"/></svg></div><h4>Artikel Terbaru & Total Artikel</h4><p>Menampilkan judul terbaru, total artikel, waktu publish (time ago), dan kategori dari REST API.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-circle"/></svg></div><h4>Status Warna & Tombol +Domain</h4><p>Warna hijau/kuning/merah untuk update <1 minggu / 1-4 minggu / >1 bulan. Tombol request domain via WhatsApp, link copyright YZG.</p></div>
+                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-circle"/></svg></div><h4>Status Warna & Tombol +Domain</h4><p>Warna hijau/kuning/merah untuk update <1 minggu / 1-4 minggu / >1 bulan. Request domain via WhatsApp.</p></div>
             </div>
         </div>
     </section>
 
-    <section class="section" id="alur">
+    <!-- Alur Kerja -->
+    <section class="section" id="alur" style="background:var(--bg2);">
         <div class="container" style="text-align:center;">
-            <p class="section-label">Alur Penggunaan</p>
+            <p class="section-label">Alur Kerja</p>
             <h2 class="section-title">Dari Link Sumber ke Draft dalam Hitungan Menit</h2>
             <div class="flow-steps">
-                <div class="flow-step"><span class="step-num">1</span><p>Login WP</p></div>
+                <div class="flow-step"><span class="step-num">1</span><p>Masukkan sumber</p></div>
                 <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">2</span><p>Buka Generator</p></div>
+                <div class="flow-step"><span class="step-num">2</span><p>Pilih AI & gaya</p></div>
                 <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">3</span><p>Input Link/Teks</p></div>
+                <div class="flow-step"><span class="step-num">3</span><p>Generate artikel</p></div>
                 <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">4</span><p>Pilih AI & Gaya</p></div>
+                <div class="flow-step"><span class="step-num">4</span><p>Audit fakta & skor</p></div>
                 <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">5</span><p>Buat Artikel</p></div>
+                <div class="flow-step"><span class="step-num">5</span><p>Pilih SEO & gambar</p></div>
                 <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">6</span><p>Pilih SEO Title</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">7</span><p>Kirim ke Draft</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">8</span><p>Edit & Publish</p></div>
+                <div class="flow-step"><span class="step-num">6</span><p>Kirim ke Draft</p></div>
             </div>
         </div>
     </section>
 
+    <!-- Harga -->
     <section class="section" id="harga">
         <div class="container" style="text-align:center;">
             <p class="section-label">Paket Lisensi</p>
@@ -399,7 +377,7 @@
                     <div class="price">Rp 499k<small>/domain</small></div>
                     <ul>
                         <li>Generator artikel AI</li>
-                        <li>Multi provider (Gemini/Grok/Z.AI)</li>
+                        <li>Multi provider (Gemini/Grok/Z.AI/Groq)</li>
                         <li>Source lock & safe paraphrase</li>
                         <li>SEO metadata lengkap</li>
                         <li>Kirim ke Draft WordPress</li>
@@ -453,26 +431,24 @@
     <section class="section" style="text-align:center;padding:50px 0 60px;">
         <div class="container">
             <h2 class="section-title">Siap Percepat Workflow Redaksi Anda?</h2>
-            <p style="color:var(--text2);margin-bottom:22px;">Dapatkan HarianExpress AI Journalist Pro Tools v3.2.8 dan tingkatkan produktivitas tim redaksi digital Anda hari ini.</p>
+            <p style="color:var(--text2);margin-bottom:22px;">Dapatkan HarianExpress AI Journalist Pro Tools v3.3.10 dan tingkatkan produktivitas tim redaksi digital Anda hari ini.</p>
             <a href="#harga" class="btn btn-primary" style="font-size:1rem;padding:15px 32px;"><svg class="icon"><use href="#icon-lock"/></svg> Lihat Paket & Beli Sekarang</a>
-            <p style="margin-top:14px;font-size:0.78rem;color:var(--text3);">Minimum: WordPress 6.0+ • PHP 7.4+ • REST API aktif • Browser modern</p>
+            <p style="margin-top:14px;font-size:0.78rem;color:var(--text3);">Minimum: WordPress 6.7+ • PHP 7.4+ • REST API aktif • Browser modern</p>
         </div>
     </section>
 
     <footer class="footer">
         <div class="container">
-            <p>© 2026 HarianExpress AI Journalist Pro Tools v3.2.8 — Plugin WordPress AI untuk Redaksi Modern.</p>
+            <p>© 2026 HarianExpress AI Journalist Pro Tools v3.3.10 — Plugin WordPress AI untuk Redaksi Modern.</p>
             <p style="margin-top:4px;"><a href="#">Dokumentasi</a> · <a href="#">Support</a> · <a href="https://yanuarzg.github.io/" target="_blank">Developer</a> · <a href="#">Syarat & Ketentuan</a></p>
         </div>
     </footer>
 
     <script>
-        // Theme toggle logic
         const html = document.documentElement;
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
 
-        // Set light theme as default
         html.classList.add('light');
         html.classList.remove('dark');
         themeIcon.innerHTML = '<use href="#icon-moon"/>';
@@ -489,7 +465,6 @@
             }
         });
 
-        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 const target = document.querySelector(this.getAttribute('href'));
@@ -500,7 +475,6 @@
             });
         });
 
-        // Intersection observer for fade-in
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
