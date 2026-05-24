@@ -1,8 +1,8 @@
 {
   "name": "HarianExpress AI Journalist Pro Tools",
   "slug": "harianexpress-journalist",
-  "version": "3.1.8",
-  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.8.zip",
+  "version": "3.1.9",
+  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.9.zip",
   "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
   "tested": "6.7",
@@ -11,6 +11,6 @@
   "author": "YZG / HarianExpress Redaksi",
   "sections": {
     "description": "AI Journalist Pro Tools untuk jaringan HarianExpress.",
-    "changelog": "<h4>v3.1.8</h4><ul><li>Tambah default API Z.AI.</li><li>Rapikan halaman Pengaturan API dengan tombol ambil API untuk Gemini, Grok/xAI, dan Z.AI.</li><li>Hapus input API Key Utama Tambahan.</li><li>Status API key kini menampilkan provider, urutan, sumber, sensor key, dan status aktif/terblokir.</li></ul>"
+    "changelog": "<h4>v3.1.9</h4><ul><li>Hapus semua default API key dari source plugin.</li><li>Plugin kini aman disimpan sebagai ZIP publik karena API key wajib diinput dari Pengaturan API.</li><li>Status API key tetap menampilkan key tambahan yang aktif/terblokir.</li></ul>"
   }
 }
