@@ -1,16 +1,16 @@
 {
   "name": "HarianExpress AI Journalist Pro Tools",
   "slug": "harianexpress-journalist",
-  "version": "3.1.9",
-  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.9.zip",
+  "version": "3.1.10",
+  "download_url": "https://github.com/yanuarzg/cc/raw/main/he/pl/harianexpress-journalist-v3.1.10.zip",
   "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
   "tested": "6.7",
   "requires_php": "7.4",
-  "last_updated": "2026-05-24 11:45:00",
+  "last_updated": "2026-05-24 18:00:00",
   "author": "YZG / HarianExpress Redaksi",
   "sections": {
     "description": "AI Journalist Pro Tools untuk jaringan HarianExpress.",
-    "changelog": "<h4>v3.1.9</h4><ul><li>Hapus semua default API key dari source plugin.</li><li>Plugin kini aman disimpan sebagai ZIP publik karena API key wajib diinput dari Pengaturan API.</li><li>Status API key tetap menampilkan key tambahan yang aktif/terblokir.</li></ul>"
+    "changelog": "<h4>v3.1.10</h4><ul><li>Tambah mode sumber URL terkunci: teks artikel sumber diambil langsung oleh WordPress sebelum dikirim ke AI.</li><li>Jika ekstraksi URL berhasil, AI tidak memakai pencarian tambahan agar tanggal, angka, nama narasumber, dan kutipan lebih akurat.</li><li>Perketat aturan agar data pasti dan kutipan langsung wajib sama persis dengan artikel sumber.</li></ul>"
   }
 }
