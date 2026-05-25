@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HarianExpress AI Journalist Pro Tools v3.3.10 — Plugin WordPress AI untuk Redaksi Modern</title>
-    <meta name="description" content="Plugin WordPress AI untuk artikel berita, rewrite, audit fakta, SEO, gambar, sosmed, dan manajemen subdomain. Dukung Gemini, Grok/xAI, Z.AI, Groq.">
+    <title>Fitur HarianExpress AI Journalist Pro Tools v3.3.10</title>
+    <meta name="description" content="Dokumentasi fitur lengkap plugin WordPress AI untuk redaksi: generator artikel, audit fakta, multi AI, manajemen gambar, direktori subdomain, dan workflow draft.">
     <style>
         :root {
-            --radius: 12px;
-            --radius-sm: 8px;
-            --radius-lg: 18px;
+            --radius: 10px;
+            --radius-sm: 6px;
             --transition: 0.2s ease;
             --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
             --mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-            --max-w: 1200px;
+            --max-w: 1100px;
         }
 
         .light {
@@ -29,14 +28,12 @@
             --accent2: #2563eb;
             --accent-glow: rgba(59, 130, 246, 0.15);
             --green: #16a34a;
-            --green-bg: rgba(22, 163, 74, 0.1);
             --yellow: #ca8a04;
-            --yellow-bg: rgba(202, 138, 4, 0.1);
             --red: #dc2626;
-            --red-bg: rgba(220, 38, 38, 0.1);
             --code-bg: #f4f5f9;
             --code-border: #d0d3e0;
             --code-text: #333;
+            --toc-bg: #f0f4ff;
         }
 
         .dark {
@@ -52,14 +49,12 @@
             --accent2: #2563eb;
             --accent-glow: rgba(59, 130, 246, 0.25);
             --green: #22c55e;
-            --green-bg: rgba(34, 197, 94, 0.1);
             --yellow: #eab308;
-            --yellow-bg: rgba(234, 179, 8, 0.1);
             --red: #ef4444;
-            --red-bg: rgba(239, 68, 68, 0.1);
             --code-bg: #0d0d16;
             --code-border: #252536;
             --code-text: #c0c0d0;
+            --toc-bg: #131325;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,379 +63,414 @@
             font-family: var(--font);
             background: var(--bg);
             color: var(--text);
-            line-height: 1.65;
+            line-height: 1.7;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-        .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+        .container { max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
 
+        /* Icons */
         .icon {
             width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em;
-            fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+            fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+            stroke-linejoin: round; flex-shrink: 0;
         }
-        .card-icon .icon { width: 1.4em; height: 1.4em; stroke-width: 2.2; }
+        .icon-lg { width: 1.4em; height: 1.4em; }
 
-        .icon-dot {
-            width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
-            box-shadow: 0 0 12px var(--accent-glow); animation: pulse-dot 2s infinite; display: inline-block; flex-shrink: 0;
-        }
-        @keyframes pulse-dot {
-            0%,100% { box-shadow: 0 0 8px var(--accent-glow); }
-            50% { box-shadow: 0 0 20px rgba(59,130,246,0.55); }
-        }
-
+        /* Navbar */
         .navbar {
             position: sticky; top: 0; z-index: 100;
-            background: var(--bg2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border); padding: 14px 0; transition: var(--transition);
+            background: var(--bg2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); padding: 12px 0;
         }
         .navbar .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-        .nav-logo { font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 9px; white-space: nowrap; }
-        .nav-links { display: flex; gap: 20px; list-style: none; align-items: center; flex-wrap: wrap; }
-        .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.9rem; transition: var(--transition); font-weight: 500; }
-        .nav-links a:hover { color: var(--accent); }
-        .nav-cta {
-            background: var(--accent); color: #fff !important; padding: 9px 18px; border-radius: 20px;
-            font-weight: 600; font-size: 0.85rem; transition: var(--transition); white-space: nowrap;
-            display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer;
+        .nav-logo {
+            font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
         }
-        .nav-cta:hover { background: var(--accent2); box-shadow: 0 0 20px var(--accent-glow); }
-
+        .nav-logo .dot {
+            width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 6px var(--accent-glow); } 50% { box-shadow: 0 0 18px rgba(59,130,246,0.5); } }
+        .nav-links { display: flex; gap: 16px; list-style: none; align-items: center; flex-wrap: wrap; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: var(--transition); }
+        .nav-links a:hover { color: var(--accent); }
         .theme-toggle {
             background: none; border: 1px solid var(--border); color: var(--text2); border-radius: 50%;
-            width: 36px; height: 36px; display: none; align-items: center; justify-content: center; cursor: pointer;
-            transition: var(--transition); flex-shrink: 0; margin-left: 8px;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: var(--transition); flex-shrink: 0;
         }
         .theme-toggle:hover { background: var(--bg3); color: var(--accent); }
 
-        .hero { padding: 70px 0 50px; text-align: center; position: relative; }
-        .hero::before {
-            content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
-            width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%); pointer-events: none; border-radius: 50%;
+        /* Header */
+        .page-header {
+            padding: 50px 0 30px; text-align: center; border-bottom: 1px solid var(--border); margin-bottom: 40px;
         }
-        .hero .badge {
-            display: inline-flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid var(--border);
-            padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; color: var(--accent); font-weight: 600; letter-spacing: 0.4px; margin-bottom: 20px;
+        .page-header .version {
+            display: inline-block; background: var(--bg3); border: 1px solid var(--border);
+            padding: 4px 14px; border-radius: 16px; font-size: 0.78rem; color: var(--accent); font-weight: 600;
+            letter-spacing: 0.5px; margin-bottom: 14px;
         }
-        .hero h1 { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 800; line-height: 1.25; color: var(--text); margin-bottom: 16px; letter-spacing: -0.3px; }
-        .hero h1 span { background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero p { color: var(--text2); font-size: 1.05rem; max-width: 650px; margin: 0 auto 28px; line-height: 1.6; }
-        .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 7px; padding: 13px 26px; border-radius: 25px;
-            font-weight: 600; font-size: 0.95rem; text-decoration: none; cursor: pointer; border: none; transition: var(--transition); font-family: var(--font);
-        }
-        .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 18px var(--accent-glow); }
-        .btn-primary:hover { background: var(--accent2); box-shadow: 0 6px 28px rgba(59,130,246,0.4); transform: translateY(-1px); }
-        .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
-        .btn-outline:hover { border-color: var(--accent); background: var(--bg3); }
+        .page-header h1 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .page-header .subtitle { color: var(--text2); font-size: 1rem; max-width: 650px; margin: 0 auto; }
 
-        .section { padding: 60px 0; }
-        .section-label { text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.72rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
-        .section-title { font-size: clamp(1.4rem,3vw,2rem); font-weight: 700; color: var(--text); margin-bottom: 12px; letter-spacing: -0.2px; }
-        .section-subtitle { color: var(--text2); font-size: 0.95rem; max-width: 600px; margin-bottom: 32px; }
+        /* Table of Contents */
+        .toc {
+            background: var(--toc-bg); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 20px 24px; margin-bottom: 40px;
+        }
+        .toc h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); margin-bottom: 12px; }
+        .toc ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+        .toc ul li a { color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+        .toc ul li a:hover { text-decoration: underline; }
 
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 18px; }
-        .card {
+        /* Section */
+        .section { padding: 40px 0; border-bottom: 1px solid var(--border); }
+        .section:last-of-type { border-bottom: none; }
+        .section-title {
+            font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 6px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title .num {
+            background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+        }
+        .section-desc { color: var(--text2); font-size: 0.9rem; margin-bottom: 20px; max-width: 700px; }
+
+        /* Feature list */
+        .feature-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+        .feature-item {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 22px 20px; transition: var(--transition); position: relative;
+            padding: 16px 18px; transition: var(--transition);
         }
-        .card:hover { border-color: #3b3b55; box-shadow: 0 8px 30px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .card-icon {
-            width: 40px; height: 40px; border-radius: 10px; background: var(--bg3); display: flex;
-            align-items: center; justify-content: center; margin-bottom: 12px; flex-shrink: 0; color: var(--accent);
-        }
-        .card h4 { color: var(--text); font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
-        .card p { color: var(--text2); font-size: 0.83rem; line-height: 1.5; }
-        .card .tag { display: inline-block; background: var(--bg3); color: var(--text3); font-size: 0.7rem; padding: 3px 9px; border-radius: 10px; margin-top: 8px; font-weight: 500; }
+        .feature-item:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+        .feature-item h4 { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+        .feature-item p { font-size: 0.8rem; color: var(--text2); line-height: 1.5; }
 
-        .flow-steps { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 20px; }
-        .flow-step {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 18px 20px; text-align: center; min-width: 100px; flex: 1 1 120px; max-width: 160px; transition: var(--transition);
-        }
-        .flow-step .step-num {
-            width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff;
-            display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;
-        }
-        .flow-step p { font-size: 0.78rem; color: var(--text2); line-height: 1.3; }
-        .flow-arrow { display: flex; align-items: center; font-size: 1.4rem; color: var(--text3); flex-shrink: 0; }
-
+        /* Code */
         .code-block {
             background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-sm);
-            padding: 16px 18px; font-family: var(--mono); font-size: 0.8rem; color: var(--code-text);
-            overflow-x: auto; white-space: pre-wrap; line-height: 1.6; margin: 10px 0;
+            padding: 14px 16px; font-family: var(--mono); font-size: 0.78rem; color: var(--code-text);
+            overflow-x: auto; white-space: pre-wrap; line-height: 1.6; margin: 8px 0;
         }
 
-        .status-demo { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
-        .status-demo span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; }
-        .dot-green { width: 10px; height: 10px; border-radius: 50%; background: var(--green); display: inline-block; }
-        .dot-yellow { width: 10px; height: 10px; border-radius: 50%; background: var(--yellow); display: inline-block; }
-        .dot-red { width: 10px; height: 10px; border-radius: 50%; background: var(--red); display: inline-block; }
+        /* Status dots */
+        .status-demo { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+        .status-demo span { display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 600; }
+        .dot-green { width: 9px; height: 9px; border-radius: 50%; background: var(--green); display: inline-block; }
+        .dot-yellow { width: 9px; height: 9px; border-radius: 50%; background: var(--yellow); display: inline-block; }
+        .dot-red { width: 9px; height: 9px; border-radius: 50%; background: var(--red); display: inline-block; }
 
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 20px; margin-top: 20px; }
-        .pricing-card {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
-            padding: 28px 24px; text-align: center; transition: var(--transition); position: relative;
-        }
-        .pricing-card.featured { border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); background: var(--bg3); }
-        .pricing-card .popular-badge {
-            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-            background: var(--accent); color: #fff; padding: 4px 16px; border-radius: 14px;
-            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap;
-            display: inline-flex; align-items: center; gap: 5px;
-        }
-        .pricing-card h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .pricing-card .price { font-size: 2.2rem; font-weight: 800; color: var(--text); margin: 10px 0 4px; }
-        .pricing-card .price small { font-size: 0.85rem; font-weight: 400; color: var(--text2); }
-        .pricing-card ul { list-style: none; text-align: left; margin: 18px 0; font-size: 0.83rem; color: var(--text2); line-height: 1.8; }
-        .pricing-card ul li::before { content: '✓ '; color: var(--green); font-weight: 700; }
-        .pricing-card .btn { width: 100%; justify-content: center; }
-
-        .footer { border-top: 1px solid var(--border); padding: 30px 0; text-align: center; color: var(--text3); font-size: 0.8rem; }
+        /* Footer */
+        .footer { padding: 24px 0; text-align: center; color: var(--text3); font-size: 0.78rem; }
         .footer a { color: var(--text2); text-decoration: none; }
         .footer a:hover { color: var(--accent); }
 
-        @media (max-width: 768px) {
-            .hero { padding: 40px 0 30px; }
-            .flow-arrow { display: none; }
-            .flow-steps { gap: 10px; }
-            .flow-step { min-width: 70px; flex: 1 1 80px; max-width: 120px; padding: 12px 10px; }
-            .cards-grid { grid-template-columns: 1fr; }
-            .pricing-grid { grid-template-columns: 1fr; }
+        @media (max-width: 640px) {
+            .feature-list { grid-template-columns: 1fr; }
+            .navbar .container { flex-direction: column; gap: 6px; }
+            .nav-links { gap: 10px; font-size: 0.75rem; }
         }
-        @media (max-width: 480px) {
-            .hero h1 { font-size: 1.5rem; }
-            .btn { padding: 11px 20px; font-size: 0.85rem; }
-            .navbar .container { flex-direction: column; gap: 8px; }
-        }
-
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-in { animation: fadeInUp 0.6s ease forwards; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
     </style>
 </head>
 <body class="light">
 
-    <!-- SVG SPRITE -->
-    <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
-        <symbol id="icon-pencil" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
-        <symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol>
-        <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
-        <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
-        <symbol id="icon-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
-        <symbol id="icon-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
-        <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><polyline points="21 15 16 10 5 21"/></symbol>
-        <symbol id="icon-bird" viewBox="0 0 24 24"><path d="M23 1s-4 1-8 3C12 2 9 4 5 6 2 8 1 12 1 12s2 1 5 2c-1 3-2 5-1 7 3-2 6-4 10-6 3-1 6-2 8-3l-3-5 3-6z"/></symbol>
-        <symbol id="icon-clapperboard" viewBox="0 0 24 24"><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M4 6l16-3v8H4z"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></symbol>
-        <symbol id="icon-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
-        <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
-        <symbol id="icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
-        <symbol id="icon-newspaper" viewBox="0 0 24 24"><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><rect x="4" y="3" width="16" height="8" rx="1"/><line x1="8" y1="5" x2="12" y2="5"/><line x1="8" y1="8" x2="12" y2="8"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="18" x2="16" y2="18"/></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
-        <symbol id="icon-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
-        <symbol id="icon-smartphone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
-        <symbol id="icon-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></symbol>
-        <symbol id="icon-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
-        <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
-        <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
-        <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
-        <symbol id="icon-bar-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
-        <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
-        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
-        <symbol id="icon-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
-        <symbol id="icon-test-tube" viewBox="0 0 24 24"><path d="M14.5 2H9.5L3 22h18L14.5 2z"/><path d="M9 2h6v4H9z"/></symbol>
-        <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <!-- ========== SVG SPRITE ========== -->
+    <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="ic-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol>
+        <symbol id="ic-pen" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
+        <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+        <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+        <symbol id="ic-clip" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
+        <symbol id="ic-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+        <symbol id="ic-img" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><polyline points="21 15 16 10 5 21"/></symbol>
+        <symbol id="ic-bird" viewBox="0 0 24 24"><path d="M23 1s-4 1-8 3C12 2 9 4 5 6 2 8 1 12 1 12s2 1 5 2c-1 3-2 5-1 7 3-2 6-4 10-6 3-1 6-2 8-3l-3-5 3-6z"/></symbol>
+        <symbol id="ic-film" viewBox="0 0 24 24"><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M4 6l16-3v8H4z"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/></symbol>
+        <symbol id="ic-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+        <symbol id="ic-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+        <symbol id="ic-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+        <symbol id="ic-news" viewBox="0 0 24 24"><path d="M4 11v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><rect x="4" y="3" width="16" height="8" rx="1"/><line x1="8" y1="5" x2="12" y2="5"/><line x1="8" y1="8" x2="12" y2="8"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="18" x2="16" y2="18"/></symbol>
+        <symbol id="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+        <symbol id="ic-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+        <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+        <symbol id="ic-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+        <symbol id="ic-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+        <symbol id="ic-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+        <symbol id="ic-smartphone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+        <symbol id="ic-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+        <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+        <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
     </svg>
 
+    <!-- ========== NAVBAR ========== -->
     <nav class="navbar">
         <div class="container">
-            <a href="#" class="nav-logo"><span class="icon-dot"></span> HarianExpress AI Journalist Pro</a>
+            <a href="#" class="nav-logo"><span class="dot"></span> HarianExpress AI Journalist Pro</a>
             <ul class="nav-links">
-                <li><a href="#fitur">Fitur</a></li>
+                <li><a href="#generator">Generator</a></li>
+                <li><a href="#multi-ai">Multi AI</a></li>
+                <li><a href="#akurasi">Akurasi</a></li>
                 <li><a href="#audit">Audit</a></li>
+                <li><a href="#seo">SEO</a></li>
+                <li><a href="#gambar">Gambar</a></li>
                 <li><a href="#network">Network</a></li>
-                <li><a href="#harga">Harga</a></li>
-                <li><a href="#harga" class="nav-cta"><svg class="icon"><use href="#icon-lock"/></svg> Beli Sekarang</a></li>
-                <li><button id="themeToggle" class="theme-toggle" aria-label="Ubah tema"><svg id="themeIcon" class="icon"><use href="#icon-moon"/></svg></button></li>
+                <li><button id="themeToggle" class="theme-toggle" aria-label="Ubah tema"><svg id="themeIcon" class="icon"><use href="#ic-moon"/></svg></button></li>
             </ul>
         </div>
     </nav>
 
-    <section class="hero">
+    <!-- ========== HEADER ========== -->
+    <header class="page-header">
         <div class="container">
-            <span class="badge">
-                <svg class="icon"><use href="#icon-cpu"/></svg> Gemini · Grok/xAI · Z.AI · Groq <span style="margin:0 4px;color:var(--text3);">|</span> v3.3.10
-            </span>
-            <h1>Plugin <span>AI Journalist</span> untuk WordPress & Media Online</h1>
-            <p>Ubah link sumber menjadi draft berita siap SEO lengkap dengan audit fakta, quality score, gambar teroptimasi, dan riwayat generate. Dilengkapi multi AI provider, source lock, safe paraphrase, dan direktori seluruh subdomain network.</p>
-            <div class="hero-buttons">
-                <a href="#harga" class="btn btn-primary"><svg class="icon"><use href="#icon-lock"/></svg> Dapatkan Plugin</a>
-                <a href="#fitur" class="btn btn-outline"><svg class="icon"><use href="#icon-clipboard"/></svg> Lihat Fitur Lengkap</a>
+            <span class="version">v3.3.10 · Image Optimization Update</span>
+            <h1>Fitur HarianExpress AI Journalist Pro Tools</h1>
+            <p class="subtitle">Dokumentasi lengkap fitur plugin WordPress berbasis AI untuk redaksi, media online, dan jaringan portal berita.</p>
+        </div>
+    </header>
+
+    <!-- ========== TABLE OF CONTENTS ========== -->
+    <div class="container">
+        <nav class="toc">
+            <h3>Daftar Fitur</h3>
+            <ul>
+                <li><a href="#generator">1. Generator Artikel AI</a></li>
+                <li><a href="#multi-ai">2. Multi AI Provider</a></li>
+                <li><a href="#api">3. Pengaturan API Key</a></li>
+                <li><a href="#source-lock">4. Source Lock</a></li>
+                <li><a href="#safe-para">5. Safe Paraphrase</a></li>
+                <li><a href="#audit">6. Audit Fakta & Quality Score</a></li>
+                <li><a href="#seo">7. SEO Metadata</a></li>
+                <li><a href="#gambar">8. Manajemen Gambar</a></li>
+                <li><a href="#draft">9. Kirim ke Draft</a></li>
+                <li><a href="#distribusi">10. Distribusi Konten</a></li>
+                <li><a href="#riwayat">11. Riwayat Generate</a></li>
+                <li><a href="#network">12. Directory Subdomain</a></li>
+                <li><a href="#lisensi">13. Lisensi & Update</a></li>
+                <li><a href="#ui">14. UI/UX & Keamanan</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- ========== 1. GENERATOR ARTIKEL ========== -->
+    <section class="section" id="generator">
+        <div class="container">
+            <div class="section-title"><span class="num">1</span> Generator Artikel AI</div>
+            <p class="section-desc">Halaman utama plugin di dashboard WordPress. Admin memasukkan sumber, AI menghasilkan artikel lengkap.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Input Sumber</h4><p>URL berita, teks mentah, keyword, atau beberapa URL sekaligus. Favicon sumber ditampilkan otomatis.</p></div>
+                <div class="feature-item"><h4>Mode Penulisan</h4><p>Standar Jurnalistik HE, Straight News (piramida terbalik), Rewrite Artikel, Target SEO Page 1.</p></div>
+                <div class="feature-item"><h4>Bahasa</h4><p>Indonesia dan English. Jika English dipilih, seluruh output (judul, isi, meta, ringkasan, sosmed) berbahasa Inggris.</p></div>
+                <div class="feature-item"><h4>Pengaturan Konten</h4><p>Panel collapsible berisi Pilih AI, Gaya Penulisan, Panjang Artikel, dan Bahasa.</p></div>
+                <div class="feature-item"><h4>Byline</h4><p>Pilihan "Yang Nulis" dan "Yang Edit" otomatis masuk ke konten artikel.</p></div>
+                <div class="feature-item"><h4>Pintasan Referensi</h4><p>Icon Google Trends Indonesia dan Google News untuk mencari topik aktual.</p></div>
+                <div class="feature-item"><h4>Progress Generate</h4><p>Lima tahap: membaca sumber, mengunci fakta, menulis artikel, mengambil media, finalisasi draft.</p></div>
+                <div class="feature-item"><h4>Copy HTML</h4><p>Tombol menyalin judul H1 dan isi artikel dalam format HTML ke clipboard.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- Fitur Utama -->
-    <section class="section" id="fitur">
+    <!-- ========== 2. MULTI AI PROVIDER ========== -->
+    <section class="section" id="multi-ai">
         <div class="container">
-            <p class="section-label">Fitur Utama</p>
-            <h2 class="section-title">Semua Kebutuhan Redaksi dalam Satu Plugin</h2>
-            <p class="section-subtitle">Dari generate artikel, audit fakta, SEO, gambar, hingga distribusi konten — terintegrasi dan aman.</p>
-            <div class="cards-grid">
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-pencil"/></svg></div><h4>AI Article Generator</h4><p>Buat artikel dari link, teks, atau keyword. Dukung gaya jurnalistik, straight news, rewrite, dan SEO.</p><span class="tag">Multi-sumber</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-cpu"/></svg></div><h4>Multi Provider AI</h4><p>Pilih Gemini, Grok/xAI, Z.AI, atau Groq langsung dari dashboard. Tidak terikat satu penyedia.</p><span class="tag">Fleksibel</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-lock"/></svg></div><h4>Source Lock</h4><p>Data penting seperti tanggal, nama, dan kutipan dijaga ketat agar AI tidak mengubahnya. Akurasi lebih terjamin.</p><span class="tag">Akurat</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-shield"/></svg></div><h4>Safe Paraphrase</h4><p>Fakta tetap sama, narasi dibuat unik agar konten lebih orisinal tanpa kehilangan informasi inti.</p><span class="tag">SEO Aman</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-clipboard"/></svg></div><h4>SEO Title, Slug & Meta</h4><p>Beberapa opsi judul SEO, slug, dan meta deskripsi. Pilih yang terbaik, langsung disimpan ke Yoast/Rank Math/SEOPress.</p><span class="tag">SEO-ready</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-send"/></svg></div><h4>Kirim ke Draft WordPress</h4><p>Satu klik kirim artikel lengkap + metadata + tags + kategori ke Draft. Tanpa copy-paste manual.</p><span class="tag">One-click</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-image"/></svg></div><h4>Gambar dari Sumber</h4><p>Multi-select gambar, filter otomatis, featured image, caption, credit, dan optimasi WebP.</p><span class="tag">Media</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-bird"/></svg></div><h4>Draft Sosial Media & Skrip Video</h4><p>Otomatis buat caption Instagram/Facebook, Twitter thread, dan skrip TikTok/Reels/Shorts.</p><span class="tag">Distribusi</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-refresh"/></svg></div><h4>Rotasi & Auto-block API Key</h4><p>Multi API key per provider, rotasi otomatis saat limit, dan auto-block key yang bocor/invalid.</p><span class="tag">Stabil</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-folder"/></svg></div><h4>Directory Subdomain A-Z</h4><p>Pantau semua subdomain, artikel terbaru, status update warna, filter, sortir, dan pintasan cepat.</p><span class="tag">Network</span></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-save"/></svg></div><h4>Update Otomatis & Lisensi</h4><p>Self-hosted update dari GitHub, lisensi domain via licenses.json, dukungan wildcard, dan cache.</p><span class="tag">Pro</span></div>
+            <div class="section-title"><span class="num">2</span> Multi AI Provider</div>
+            <p class="section-desc">Plugin tidak terikat satu penyedia AI. Pengguna bisa memilih provider langsung dari dropdown.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Gemini</h4><p>Provider utama. Model didukung: Gemini 2.5 Flash, Flash Lite, Pro, dan model lain yang tersedia di dropdown pengaturan.</p></div>
+                <div class="feature-item"><h4>Grok / xAI</h4><p>Untuk kebutuhan real-time dan akurasi berbasis informasi terbaru. Badge PRO, perlu akun GROK PRO.</p></div>
+                <div class="feature-item"><h4>Z.AI</h4><p>Didukung dengan pola OpenAI-compatible API.</p></div>
+                <div class="feature-item"><h4>Groq</h4><p>Provider tambahan (v3.3.10). Link ambil API: console.groq.com/keys, endpoint OpenAI-compatible.</p></div>
+                <div class="feature-item"><h4>Dropdown Pilih AI</h4><p>Di halaman generator, admin bisa berganti provider kapan saja tanpa harus ke halaman pengaturan.</p></div>
+                <div class="feature-item"><h4>Fallback Provider</h4><p>Jika Grok/xAI gagal, plugin bisa fallback ke Gemini jika tersedia.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- Fitur Audit & Kontrol Kualitas (v3.3.10) -->
-    <section class="section" id="audit" style="background:var(--bg2);">
+    <!-- ========== 3. PENGATURAN API KEY ========== -->
+    <section class="section" id="api">
         <div class="container">
-            <p class="section-label">Baru di v3.3.10</p>
-            <h2 class="section-title">Audit Fakta, Quality Score & Workflow Gambar</h2>
-            <p class="section-subtitle">Fitur kontrol kualitas sebelum artikel masuk Draft WordPress.</p>
-            <div class="cards-grid">
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-search"/></svg></div><h4>Audit Fakta Sebelum Draft</h4><p>Panel periksa kutipan, tanggal, angka, dan sumber. Item yang aman disembunyikan otomatis.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-bar-chart"/></svg></div><h4>Quality Score & Deteksi Duplikasi</h4><p>Skor kualitas artikel dan peringatan jika kemiripan narasi >50%. Bisa parafrase ulang.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-camera"/></svg></div><h4>Multi‑select Gambar & Featured Image</h4><p>Pilih beberapa gambar sumber, urutan pertama jadi featured image, sisanya masuk konten.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-download"/></svg></div><h4>Auto Compress & WebP</h4><p>Resize, kompres, dan konversi ke WebP otomatis. Fallback ke asli jika gagal.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-history"/></svg></div><h4>Riwayat Generate</h4><p>Catat 20 riwayat terakhir + pagination. Lihat judul, sumber, provider, status draft.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-test-tube"/></svg></div><h4>Test API Key & Prompt Custom</h4><p>Test setiap provider langsung, dan tambahkan instruksi global tanpa edit kode.</p></div>
+            <div class="section-title"><span class="num">3</span> Pengaturan API Key Aman</div>
+            <p class="section-desc">Semua API key dikelola dari halaman Pengaturan API. Tidak ada key bawaan di ZIP plugin.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Input Terpisah per Provider</h4><p>API Gemini, Grok/xAI, Z.AI, dan Groq masing-masing punya input sendiri, satu key per baris.</p></div>
+                <div class="feature-item"><h4>Tombol Ambil API Key</h4><p>Setiap provider memiliki tombol menuju halaman resmi pengambilan API key.</p></div>
+                <div class="feature-item"><h4>Test API Key</h4><p>Tombol test untuk setiap provider. Hasil test muncul tepat di bawah tombol, bukan di tempat terpisah.</p></div>
+                <div class="feature-item"><h4>Masking Key</h4><p>API key ditampilkan tersensor (contoh: AIzaSyA••••••••••). Key diblokir disimpan sebagai hash, bukan teks asli.</p></div>
+                <div class="feature-item"><h4>Auto-block Key Bermasalah</h4><p>Key yang bocor, invalid, expired, disabled, forbidden (401/403) otomatis ditandai dan dilewati.</p></div>
+                <div class="feature-item"><h4>Rotasi & Retry</h4><p>Jika satu key limit/timeout/high demand/5xx, plugin coba key berikutnya. Retry beberapa kali.</p></div>
+                <div class="feature-item"><h4>Prompt Custom</h4><p>Bagian Instruksi Global Tambahan. Admin bisa menambahkan instruksi khusus tanpa mengedit kode plugin.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- Network Subdomain -->
+    <!-- ========== 4. SOURCE LOCK ========== -->
+    <section class="section" id="source-lock">
+        <div class="container">
+            <div class="section-title"><span class="num">4</span> Source Lock</div>
+            <p class="section-desc">Fitur kunci untuk menjaga akurasi fakta dari artikel sumber.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Ekstraksi Teks Sumber</h4><p>Jika input berupa URL, plugin membaca isi artikel langsung dari sumber via server WordPress, bukan membiarkan AI mengambil informasi bebas.</p></div>
+                <div class="feature-item"><h4>Data yang Dikunci</h4><p>Tanggal, jam, nama narasumber, jabatan, angka, lokasi, status resmi, dan kutipan langsung.</p></div>
+                <div class="feature-item"><h4>Kutipan Langsung</h4><p>Kutipan dalam tanda petik tidak boleh diubah sama sekali (verbatim).</p></div>
+            </div>
+            <div class="code-block">AI hanya diberi teks sumber hasil ekstraksi, bukan dibiarkan mengambil informasi bebas dari internet.</div>
+        </div>
+    </section>
+
+    <!-- ========== 5. SAFE PARAPHRASE ========== -->
+    <section class="section" id="safe-para">
+        <div class="container">
+            <div class="section-title"><span class="num">5</span> Safe Paraphrase</div>
+            <p class="section-desc">Menyeimbangkan akurasi sumber dan keunikan redaksional.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Fakta Tetap Sama</h4><p>Tanggal, angka, nama, lokasi, dan status resmi tidak berubah.</p></div>
+                <div class="feature-item"><h4>Kutipan Tetap Verbatim</h4><p>Kutipan langsung tidak diparafrase.</p></div>
+                <div class="feature-item"><h4>Narasi Diparafrase</h4><p>Struktur kalimat dibuat lebih unik, urutan penjelasan bisa disusun ulang secara aman.</p></div>
+                <div class="feature-item"><h4>Deteksi Kemiripan</h4><p>Jika kemiripan narasi >50%, status dianggap tinggi dan tersedia opsi parafrase ulang. Kutipan dikecualikan dari perhitungan.</p></div>
+                <div class="feature-item"><h4>Compare</h4><p>Tombol membandingkan teks sumber dan hasil rewrite dalam tampilan split.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 6. AUDIT FAKTA & QUALITY SCORE ========== -->
+    <section class="section" id="audit">
+        <div class="container">
+            <div class="section-title"><span class="num">6</span> Audit Fakta & Quality Score</div>
+            <p class="section-desc">Fitur kontrol kualitas sebelum artikel masuk Draft WordPress.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Panel Audit Fakta</h4><p>Memeriksa: kutipan di sumber, tanggal di sumber, jam di sumber, angka di sumber, URL sumber, caption istimewa/ist. Item yang aman disembunyikan.</p></div>
+                <div class="feature-item"><h4>Normalisasi Tanggal</h4><p>24/05/2026, 24 Mei 2026, 24 May 2026, May 24, 2026 dianggap sama. Mengurangi false warning.</p></div>
+                <div class="feature-item"><h4>Quality Score</h4><p>Skor berdasarkan: sumber berhasil dibaca, data cocok, SEO lengkap, panjang, heading, blockquote, list, kemiripan narasi.</p></div>
+                <div class="feature-item"><h4>Deteksi Duplikasi</h4><p>Jika kemiripan >50%, status tinggi dan ada opsi parafrase ulang.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 7. SEO METADATA ========== -->
+    <section class="section" id="seo">
+        <div class="container">
+            <div class="section-title"><span class="num">7</span> SEO Metadata Lengkap</div>
+            <p class="section-desc">Plugin menghasilkan pilihan SEO title, slug, meta description, tags, dan kategori.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Pilihan SEO Title & Slug</h4><p>Beberapa opsi dengan radio button. Title terpilih jadi H1 dan judul draft.</p></div>
+                <div class="feature-item"><h4>Meta Description</h4><p>Beberapa opsi. Disimpan ke Yoast, Rank Math, SEOPress, fallback custom meta.</p></div>
+                <div class="feature-item"><h4>Post Subtitle</h4><p>Mendukung field <code>single_post_subtitle</code> dan <code>_single_post_subtitle</code>. Meta description otomatis jadi subtitle.</p></div>
+                <div class="feature-item"><h4>Tags & Kategori Otomatis</h4><p>Tags relevan dan rekomendasi kategori berdasarkan isi artikel.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 8. MANAJEMEN GAMBAR ========== -->
+    <section class="section" id="gambar">
+        <div class="container">
+            <div class="section-title"><span class="num">8</span> Manajemen Gambar (v3.3.10)</div>
+            <p class="section-desc">Fitur pengambilan, pemilihan, dan optimasi gambar dari artikel sumber.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Deteksi Gambar Sumber</h4><p>Mengambil gambar dari area artikel, bukan icon/logo kecil. Minimal lebar ~320px, deduplikasi gambar mirip.</p></div>
+                <div class="feature-item"><h4>Multi-select Gambar</h4><p>Checklist untuk memilih beberapa gambar. Urutan pertama = featured image, berikutnya = masuk konten.</p></div>
+                <div class="feature-item"><h4>Caption & Credit</h4><p>Deteksi caption dari figcaption, class caption, alt, data-caption, dll. Credit dari source/photo-credit. Audit caption istimewa/ist.</p></div>
+                <div class="feature-item"><h4>Auto Compress & WebP</h4><p>Resize jika >1280px, kompres kualitas 82, konversi ke WebP. Fallback ke asli jika gagal. Metadata disimpan.</p></div>
+                <div class="feature-item"><h4>Featured Image Otomatis</h4><p>Download ke Media Library, set featured image, sisipkan gambar ke konten sebagai figure.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 9. KIRIM KE DRAFT ========== -->
+    <section class="section" id="draft">
+        <div class="container">
+            <div class="section-title"><span class="num">9</span> Kirim ke Draft WordPress</div>
+            <p class="section-desc">Satu klik mengirim artikel lengkap ke Draft WordPress.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Data yang Dikirim</h4><p>Title, slug, content, excerpt, category, tags, meta description, post subtitle, source URL, AI provider, versi plugin, gambar.</p></div>
+                <div class="feature-item"><h4>Gambar di Draft</h4><p>Gambar pertama jadi featured image, berikutnya disisipkan ke konten sebagai figure dengan caption.</p></div>
+                <div class="feature-item"><h4>Metadata Tersimpan</h4><p>URL gambar asli, status optimasi, format hasil (WebP/fallback/original).</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 10. DISTRIBUSI KONTEN ========== -->
+    <section class="section" id="distribusi">
+        <div class="container">
+            <div class="section-title"><span class="num">10</span> Distribusi Konten</div>
+            <p class="section-desc">Satu artikel bisa langsung dikembangkan menjadi berbagai format.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Ringkasan Cepat</h4><p>Poin-poin utama artikel untuk editor, bullet summary, atau bahan caption singkat.</p></div>
+                <div class="feature-item"><h4>Draft Sosial Media</h4><p>Twitter/X thread, caption Instagram/Facebook, hashtag relevan, CTA diskusi.</p></div>
+                <div class="feature-item"><h4>Skrip Video Pendek</h4><p>Ide visual/B-roll, hook 0–3 detik, isi voiceover, CTA. Untuk TikTok/Reels/Shorts.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 11. RIWAYAT GENERATE ========== -->
+    <section class="section" id="riwayat">
+        <div class="container">
+            <div class="section-title"><span class="num">11</span> Riwayat Generate</div>
+            <p class="section-desc">Halaman HE Journalist → Riwayat Generate mencatat semua aktivitas generate.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>20 Riwayat + Pagination</h4><p>Menampilkan judul, tanggal generate, sumber URL, provider AI, user, status draft.</p></div>
+                <div class="feature-item"><h4>Multi URL</h4><p>Jika penulis memasukkan beberapa URL, semua ditampilkan.</p></div>
+                <div class="feature-item"><h4>Indikator Status</h4><p>Belum dikirim / dilanjutkan ke Draft / Draft berhasil dibuat. Link draft jika tersedia.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 12. DIRECTORY SUBDOMAIN ========== -->
     <section class="section" id="network">
         <div class="container">
-            <p class="section-label">Network Subdomain</p>
-            <h2 class="section-title">Directory A-Z & Monitoring Kanal</h2>
-            <p class="section-subtitle">Pantau seluruh subdomain media Anda dalam satu halaman, lengkap dengan filter, sortir, dan status update warna.</p>
-            <div class="cards-grid">
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-folder"/></svg></div><h4>Directory A-Z Subdomain</h4><p>Daftar subdomain dari <code>DOMAIN_GROUPS.all</code>, dengan search, filter grup, sortir A-Z, terbaru, artikel terbanyak/tersedikit.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-link"/></svg></div><h4>Pintasan Cepat</h4><p>Tombol buka website dan login (/pinarak.php) langsung ke subdomain terkait.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-newspaper"/></svg></div><h4>Artikel Terbaru & Total Artikel</h4><p>Menampilkan judul terbaru, total artikel, waktu publish (time ago), dan kategori dari REST API.</p></div>
-                <div class="card"><div class="card-icon"><svg class="icon"><use href="#icon-circle"/></svg></div><h4>Status Warna & Tombol +Domain</h4><p>Warna hijau/kuning/merah untuk update <1 minggu / 1-4 minggu / >1 bulan. Request domain via WhatsApp.</p></div>
+            <div class="section-title"><span class="num">12</span> Directory Subdomain (Network)</div>
+            <p class="section-desc">Hanya muncul di harianexpress.com dan subdomainnya. Membaca data dari file eksternal.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Sumber Data</h4><p><code>DOMAIN_GROUPS.all</code> dari <code>yanuarzg.github.io/cc/he/all.js</code>.</p></div>
+                <div class="feature-item"><h4>Directory A-Z</h4><p>Pencarian, filter grup, sortir A-Z, terbaru, terlama, artikel terbanyak, tersedikit. Navigasi alfabet.</p></div>
+                <div class="feature-item"><h4>Subdomain Utama</h4><p><code>www.harianexpress.com</code> di posisi paling atas dengan label "Utama".</p></div>
+                <div class="feature-item"><h4>Artikel Terbaru</h4><p>Judul terbaru, total artikel, waktu publish (time ago), kategori dari REST API.</p></div>
+                <div class="feature-item"><h4>Status Warna</h4><p><span class="status-demo"><span><span class="dot-green"></span> <1 minggu</span> <span><span class="dot-yellow"></span> 1–4 minggu</span> <span><span class="dot-red"></span> >1 bulan</span></span></p></div>
+                <div class="feature-item"><h4>Shortcut</h4><p>Icon buka website di tab baru dan login ke /pinarak.php.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- Alur Kerja -->
-    <section class="section" id="alur" style="background:var(--bg2);">
-        <div class="container" style="text-align:center;">
-            <p class="section-label">Alur Kerja</p>
-            <h2 class="section-title">Dari Link Sumber ke Draft dalam Hitungan Menit</h2>
-            <div class="flow-steps">
-                <div class="flow-step"><span class="step-num">1</span><p>Masukkan sumber</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">2</span><p>Pilih AI & gaya</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">3</span><p>Generate artikel</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">4</span><p>Audit fakta & skor</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">5</span><p>Pilih SEO & gambar</p></div>
-                <span class="flow-arrow">→</span>
-                <div class="flow-step"><span class="step-num">6</span><p>Kirim ke Draft</p></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Harga -->
-    <section class="section" id="harga">
-        <div class="container" style="text-align:center;">
-            <p class="section-label">Paket Lisensi</p>
-            <h2 class="section-title">Pilih Paket Sesuai Skala Redaksi</h2>
-            <p class="section-subtitle" style="margin:0 auto 32px;">Lisensi domain fleksibel, dukungan wildcard, update otomatis dari GitHub.</p>
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3><svg class="icon" style="width:1.2em;height:1.2em;"><use href="#icon-smartphone"/></svg> Personal</h3>
-                    <div class="price">Rp 499k<small>/domain</small></div>
-                    <ul>
-                        <li>Generator artikel AI</li>
-                        <li>Multi provider (Gemini/Grok/Z.AI/Groq)</li>
-                        <li>Source lock & safe paraphrase</li>
-                        <li>SEO metadata lengkap</li>
-                        <li>Kirim ke Draft WordPress</li>
-                        <li>1 domain lisensi</li>
-                    </ul>
-                    <a href="https://wa.me/6289507785333?text=Halo%2C%20saya%20ingin%20membeli%20Paket%20Personal" class="btn btn-outline" target="_blank"><svg class="icon"><use href="#icon-lock"/></svg> Beli via WhatsApp</a>
-                </div>
-                <div class="pricing-card featured">
-                    <span class="popular-badge"><svg class="icon" style="width:0.9em;height:0.9em;"><use href="#icon-star"/></svg> Paling Populer</span>
-                    <h3><svg class="icon" style="width:1.2em;height:1.2em;"><use href="#icon-newspaper"/></svg> Publisher</h3>
-                    <div class="price">Rp 1,2jt<small>/network</small></div>
-                    <ul>
-                        <li>Semua fitur Personal</li>
-                        <li>Directory subdomain A-Z</li>
-                        <li>Monitoring artikel & status</li>
-                        <li>Rotasi multi API key</li>
-                        <li>Lisensi beberapa subdomain</li>
-                    </ul>
-                    <a href="https://wa.me/6289507785333?text=Halo%2C%20saya%20ingin%20membeli%20Paket%20Publisher" class="btn btn-primary" target="_blank"><svg class="icon"><use href="#icon-lock"/></svg> Beli via WhatsApp</a>
-                </div>
-                <div class="pricing-card">
-                    <h3><svg class="icon" style="width:1.2em;height:1.2em;"><use href="#icon-folder"/></svg> Network</h3>
-                    <div class="price">Rp 2,5jt<small>/network</small></div>
-                    <ul>
-                        <li>Semua fitur Publisher</li>
-                        <li>Wildcard subdomain</li>
-                        <li>Update otomatis penuh</li>
-                        <li>Lisensi via GitHub</li>
-                        <li>Prioritas support</li>
-                    </ul>
-                    <a href="https://wa.me/6289507785333?text=Halo%2C%20saya%20ingin%20membeli%20Paket%20Network" class="btn btn-outline" target="_blank"><svg class="icon"><use href="#icon-lock"/></svg> Beli via WhatsApp</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" style="background:var(--bg2);">
-        <div class="container" style="text-align:center;">
-            <p class="section-label">Catatan Penting</p>
-            <h2 class="section-title">AI Membantu, Editor Tetap Memverifikasi</h2>
-            <p class="section-subtitle" style="margin:0 auto 28px;">Plugin ini mempercepat produksi artikel, namun hasil AI tetap perlu diperiksa sebelum dipublikasikan, terutama untuk data sensitif.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
-                <span style="background:var(--bg3);padding:8px 16px;border-radius:20px;font-size:0.82rem;color:var(--text2);"><svg class="icon" style="width:1em;height:1em;margin-right:4px;"><use href="#icon-check"/></svg> Verifikasi fakta & sumber</span>
-                <span style="background:var(--bg3);padding:8px 16px;border-radius:20px;font-size:0.82rem;color:var(--text2);"><svg class="icon" style="width:1em;height:1em;margin-right:4px;"><use href="#icon-pencil"/></svg> Editing redaksi</span>
-                <span style="background:var(--bg3);padding:8px 16px;border-radius:20px;font-size:0.82rem;color:var(--text2);"><svg class="icon" style="width:1em;height:1em;margin-right:4px;"><use href="#icon-clipboard"/></svg> Cek plagiarisme</span>
-                <span style="background:var(--bg3);padding:8px 16px;border-radius:20px;font-size:0.82rem;color:var(--text2);"><svg class="icon" style="width:1em;height:1em;margin-right:4px;"><use href="#icon-lock"/></svg> Koreksi data & kutipan</span>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" style="text-align:center;padding:50px 0 60px;">
+    <!-- ========== 13. LISENSI & UPDATE ========== -->
+    <section class="section" id="lisensi">
         <div class="container">
-            <h2 class="section-title">Siap Percepat Workflow Redaksi Anda?</h2>
-            <p style="color:var(--text2);margin-bottom:22px;">Dapatkan HarianExpress AI Journalist Pro Tools v3.3.10 dan tingkatkan produktivitas tim redaksi digital Anda hari ini.</p>
-            <a href="#harga" class="btn btn-primary" style="font-size:1rem;padding:15px 32px;"><svg class="icon"><use href="#icon-lock"/></svg> Lihat Paket & Beli Sekarang</a>
-            <p style="margin-top:14px;font-size:0.78rem;color:var(--text3);">Minimum: WordPress 6.7+ • PHP 7.4+ • REST API aktif • Browser modern</p>
+            <div class="section-title"><span class="num">13</span> Lisensi & Update Otomatis</div>
+            <p class="section-desc">Sistem lisensi domain dan self-hosted update checker.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>Domain Bawaan</h4><p>harianexpress.com, *.harianexpress.com, harianexpress.id, *.harianexpress.id, geky.page.gd.</p></div>
+                <div class="feature-item"><h4>Lisensi via GitHub</h4><p><code>licenses.json</code> dari GitHub raw. Dukungan wildcard domain. Cache ~30 menit.</p></div>
+                <div class="feature-item"><h4>Update Otomatis</h4><p>Notifikasi update di halaman Plugins WordPress. Metadata dari <code>update.json</code> GitHub.</p></div>
+                <div class="feature-item"><h4>Status Update</h4><p>Di Pengaturan API: versi saat ini, versi terbaru, tombol cek update sekarang.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 14. UI/UX & KEAMANAN ========== -->
+    <section class="section" id="ui">
+        <div class="container">
+            <div class="section-title"><span class="num">14</span> UI/UX & Keamanan</div>
+            <p class="section-desc">Plugin dibangun dengan standar WordPress dan prinsip keamanan dasar.</p>
+            <div class="feature-list">
+                <div class="feature-item"><h4>UI Modern</h4><p>Layout clean, card rapi, spacing baik, warna netral, tanpa gradient berlebihan.</p></div>
+                <div class="feature-item"><h4>Responsive Mobile</h4><p>Sticky dinonaktifkan di layar kecil, grid satu kolom, select mobile-safe, tombol nyaman ditekan.</p></div>
+                <div class="feature-item"><h4>Admin Notice Fix</h4><p>Notifikasi plugin lain dipindahkan ke tray khusus agar tidak mengganggu header plugin.</p></div>
+                <div class="feature-item"><h4>Keamanan</h4><p>Nonce AJAX, capability check, proteksi ABSPATH, sanitasi input, escaping output, API key tidak di JS.</p></div>
+                <div class="feature-item"><h4>Standar WordPress</h4><p>Struktur plugin standar, hooks, transient cache, wp_remote_get/post, wp_insert_post, Media Library API.</p></div>
+                <div class="feature-item"><h4>Performa</h4><p>Transient untuk lisensi, update checker, data eksternal. Aset admin hanya di halaman plugin.</p></div>
+                <div class="feature-item"><h4>Peringatan Akurasi</h4><p>Peringatan redaksi tentang akurasi berita, dengan nama domain aktif dan pasal UU ITE terkait.</p></div>
+                <div class="feature-item"><h4>Footer</h4><p>Hak Cipta © 2026 YanuarZG. Tombol lisensi ke yanuarzg.github.io.</p></div>
+            </div>
         </div>
     </section>
 
     <footer class="footer">
         <div class="container">
-            <p>© 2026 HarianExpress AI Journalist Pro Tools v3.3.10 — Plugin WordPress AI untuk Redaksi Modern.</p>
-            <p style="margin-top:4px;"><a href="#">Dokumentasi</a> · <a href="#">Support</a> · <a href="https://yanuarzg.github.io/" target="_blank">Developer</a> · <a href="#">Syarat & Ketentuan</a></p>
+            <p>Dokumentasi fitur HarianExpress AI Journalist Pro Tools v3.3.10. Dibuat untuk referensi tim redaksi dan pengembang.</p>
+            <p style="margin-top:6px;"><a href="https://yanuarzg.github.io/" target="_blank">Developer</a> · WordPress 6.7+ · PHP 7.4+</p>
         </div>
     </footer>
 
@@ -449,51 +479,24 @@
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
 
-        html.classList.add('light');
-        html.classList.remove('dark');
-        themeIcon.innerHTML = '<use href="#icon-moon"/>';
+        html.classList.add('light'); html.classList.remove('dark');
+        themeIcon.innerHTML = '<use href="#ic-moon"/>';
 
         themeToggle.addEventListener('click', () => {
             if (html.classList.contains('light')) {
-                html.classList.remove('light');
-                html.classList.add('dark');
-                themeIcon.innerHTML = '<use href="#icon-sun"/>';
+                html.classList.remove('light'); html.classList.add('dark');
+                themeIcon.innerHTML = '<use href="#ic-sun"/>';
             } else {
-                html.classList.remove('dark');
-                html.classList.add('light');
-                themeIcon.innerHTML = '<use href="#icon-moon"/>';
+                html.classList.remove('dark'); html.classList.add('light');
+                themeIcon.innerHTML = '<use href="#ic-moon"/>';
             }
         });
 
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    e.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
             });
-        });
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.15 });
-
-        document.querySelectorAll('.card, .pricing-card, .flow-step').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            observer.observe(el);
-        });
-
-        document.querySelectorAll('.animate-in').forEach(el => {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
         });
     </script>
 </body>
