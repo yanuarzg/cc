@@ -708,13 +708,20 @@ document.addEventListener('DOMContentLoaded', function () {
   // MAIN INITIALIZATION (setelah semua fungsi siap)
   // ============================================================
 
-  // Multi-source WP -> daftarkan ke FeedManager
+  // Multi-source WP -> pakai Apps Script Aggregator
   document.querySelectorAll('.recent-wp-multi').forEach(function (container) {
     if (container.dataset.loaded) return;
     container.dataset.loaded = '1';
     container.innerHTML = renderSkeleton();
     container.setAttribute('aria-busy', 'true');
-    FeedManager.loadMultiWPFromAggregator(container);
+  
+    if (typeof window.loadMultiWPFromAggregator === 'function') {
+      window.loadMultiWPFromAggregator(container);
+    } else {
+      console.error('loadMultiWPFromAggregator belum tersedia');
+      container.innerHTML = config.ERROR_MESSAGE;
+      container.removeAttribute('aria-busy');
+    }
   });
 
   // Single WP
