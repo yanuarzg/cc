@@ -714,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function () {
     container.dataset.loaded = '1';
     container.innerHTML = renderSkeleton();
     container.setAttribute('aria-busy', 'true');
-    FeedManager.registerWPContainer(container);
+    FeedManager.loadMultiWPFromAggregator(container);
   });
 
   // Single WP
