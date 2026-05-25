@@ -51,6 +51,62 @@ document.addEventListener('DOMContentLoaded', function () {
     PLACEHOLDER    : 'https://harianexpress.com/wp-content/uploads/2024/12/HE-Logo-Besar.png'
   };
 
+  var HE_GAS_URL = 'https://script.google.com/macros/s/AKfycby-wjHrISkxkjEaHOpoU2risaNErxoJYEhV9qswp873AF8p3jmNhjE8GSw84K3jZhTD/exec';
+  var heAggregatorPending = new Map();
+  
+  async function fetchAggregatorPosts(group, category, items, start) {
+    var key = [group || 'all', category || '', items || 10, start || 1].join('|');
+  
+    if (heAggregatorPending.has(key)) {
+      return heAggregatorPending.get(key);
+    }
+  
+    var url = HE_GAS_URL
+      + '?group=' + encodeURIComponent(group || 'all')
+      + '&category=' + encodeURIComponent(category || '')
+      + '&items=' + encodeURIComponent(items || 10)
+      + '&start=' + encodeURIComponent(start || 1);
+  
+    var promise = fetch(url, { cache: 'no-cache' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
+  
+    heAggregatorPending.set(key, promise);
+  
+    try {
+      return await promise;
+    } finally {
+      heAggregatorPending.delete(key);
+    }
+  }
+  
+  window.loadMultiWPFromAggregator = async function (container) {
+    var group = container.getAttribute('data-group')
+             || container.getAttribute('data-sources')
+             || 'all';
+  
+    var category = container.getAttribute('data-category') || '';
+    var items = parseInt(container.getAttribute('data-items'), 10) || 10;
+    var start = parseInt(container.getAttribute('data-start'), 10) || 1;
+  
+    try {
+      var posts = await fetchAggregatorPosts(group, category, items, start);
+  
+      if (posts && posts.length) {
+        container.innerHTML = renderList(posts);
+      } else {
+        container.innerHTML = config.ERROR_MESSAGE;
+      }
+    } catch (err) {
+      console.error('Aggregator fetch failed:', err);
+      container.innerHTML = config.ERROR_MESSAGE;
+    }
+  
+    container.removeAttribute('aria-busy');
+  };
+
   // ============================================================
   // REQUEST DEDUPLICATION TRACKER
   // ============================================================
@@ -688,9 +744,8 @@ document.addEventListener('DOMContentLoaded', function () {
     window.loadMultiBlogger(container);
   });
 
-  // Jalankan FeedManager (multi WP)
-  FeedManager.init();
-
+  // FeedManager.init();
+  
 }); // end DOMContentLoaded
 
 /**
