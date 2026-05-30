@@ -24,6 +24,7 @@
     "jakartadreampools.com",
     "khatulistiwapools.com",
     "globalutamateknik.com",
+    "*.globalutamateknik.com",
     "tirtacrystalwater.com"
   ]
 }
