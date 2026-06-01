@@ -1,15 +1,15 @@
 {
-  "name": "HarianExpress AI Journalist Pro Tools",
+  "name": "YZG AI Journalist",
   "slug": "harianexpress-journalist",
-  "version": "3.3.10",
-  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/harianexpress-journalist-v3.3.10.zip",
+  "version": "3.5.2",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.5.2.zip",
   "homepage": "https://yanuarzg.github.io/",
   "requires": "6.0",
   "tested": "6.8",
   "requires_php": "7.4",
-  "last_updated": "2026-05-24 00:00:00",
+  "last_updated": "2026-05-26 17:55:00",
   "sections": {
-    "description": "AI Journalist Pro Tools untuk HarianExpress.",
-    "changelog": "<h4>v3.3.10</h4><ul><li>Audit caption foto ist/istimewa kini bersifat warning.</li><li>Optimasi gambar pilihan: resize, kompres, dan WebP otomatis jika server mendukung.</li><li>Perbaikan posisi source tools dan audit fakta.</li></ul>"
+    "description": "White-label AI editorial assistant untuk WordPress.",
+    "changelog": "<h4>v3.5.2</h4><ul><li>Label input generator diubah menjadi Topik/Sumber Berita.</li><li>Prompt default Standar Jurnalistik diperbarui dengan prinsip Piramida Terbalik.</li><li>Spacing logo white-label diperbaiki.</li></ul>"
   }
 }
