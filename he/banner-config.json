@@ -1,9 +1,9 @@
 {
   "background": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhSXvvdiG4vfgEIbVa2aRSQ3sSNIMBvmLybTD06fKp1CF4wLwFh_NBg3i65lMea_ytzidpKkwTXATd3YjtqUIGYr7ulHO71xkiTaZNVFknnqthXsg_QRF9AEbn_-ccDqSRTsbfYukeBFG7_xin8DNKWQawfysH75j8QTV4FSRgvg5840sad3kWDhrsFTzY/rw/Selamat%20Menunaikan%20Ibadah%20Haji%20background.png"
+    "image": ""
   },
   "event": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhh2Z-o-lq00Gp3b2VOrz9cUEDGMo9ukXIDjk7V3UQlTyohrecu_nuU2OJh5AOqw-aRt1Bb2DGfsVVJqE0YvrKOz6FMhUKem06jze-iEoO1zydJHH-uX1Xuix3DZM-0xT2Skf99_yNRnIaE8aztX41GY70Jzd0XC9bXnrrX6pIXrG1Hgfj8L7xDohe03JU/s320/Selamat%20Menunaikan%20Ibadah%20Haji.png",
+    "image": "",
     "position": {
       "horizontal": "left",
       "vertical": "center"
@@ -13,13 +13,13 @@
     "enabled": true,
     "type": "wordpress",
     "subdomain": "humaniora.harianexpress.com",
-    "filterType": "category",
-    "filterValue": "Keagamaan",
+    "filterType": "tags",
+    "filterValue": "ibadah haji",
     "count": 5,
     "autoplaySpeed": 5000
   },
   "display": {
     "showOnSites": []
   },
-  "version": 1778258392853
+  "version": 1780472557826
 }
