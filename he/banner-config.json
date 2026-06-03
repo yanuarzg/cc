@@ -3,7 +3,7 @@
     "image": ""
   },
   "event": {
-    "image": "",
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEik0YsuSTXUQRHvvMAoSZSVIsZeew9WSHRndXe_EaQyLHjV7PTjcL5qdleWBp5T3359b7M8AbypbBtvwb0_tq8BO8p29KiSvxlzPVq8pWXxZuDtkdYw2TjZ7RckLwurVoWcgdzTW4U0W7Xy-Uo82lGq8wai1qQRmCwN0GB6E2yNu1Pv2I48CA7MH_-0mUI/s320/Hari%20Lingkungan%20Hidup%20Sedunia.png",
     "position": {
       "horizontal": "left",
       "vertical": "center"
@@ -12,14 +12,14 @@
   "slider": {
     "enabled": true,
     "type": "wordpress",
-    "subdomain": "humaniora.harianexpress.com",
-    "filterType": "tags",
-    "filterValue": "ibadah haji",
+    "subdomain": "nature.harianexpress.com",
+    "filterType": "category",
+    "filterValue": "konservasi",
     "count": 5,
     "autoplaySpeed": 5000
   },
   "display": {
     "showOnSites": []
   },
-  "version": 1780472557826
+  "version": 1780473802944
 }
