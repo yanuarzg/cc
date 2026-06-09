@@ -1,9 +1,9 @@
 {
   "background": {
-    "image": ""
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhCyV8smRyaIlTd_TCUODpfOJ0m9vuwgy1EB9Pf-RrCYS5XGd5QUGobiXlUNNfYiX5UiwUpjNRA6KQvtVnOqQu5pbSWR9ozIuqUiBzwTj439p4jYjooLb5B54MBBOMBWXcNRpNghpnhD-k9J3CBVZV2qnlHNuUaKV9Rty24mmXP3QfmjXbghB147ivYzIk/w1200-rw/8b3a7cbf-911c-4809-a084-368496c1d04c.webp"
   },
   "event": {
-    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEik0YsuSTXUQRHvvMAoSZSVIsZeew9WSHRndXe_EaQyLHjV7PTjcL5qdleWBp5T3359b7M8AbypbBtvwb0_tq8BO8p29KiSvxlzPVq8pWXxZuDtkdYw2TjZ7RckLwurVoWcgdzTW4U0W7Xy-Uo82lGq8wai1qQRmCwN0GB6E2yNu1Pv2I48CA7MH_-0mUI/s320/Hari%20Lingkungan%20Hidup%20Sedunia.png",
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjuQ3dGMrE2fMSkd-oSM6kbyO00U1cXaqLz4FaeU4QXQWU_qwXqKNGc8yzQIZ8TYoGeZen4zckoVFUZtZKHgRE0w2jA19W1O3XlzzWYSCDf-A6W6xTtylWtSQAtnOinzS907ywDR0XmLWveo3jRAzY3aE1WH3bltfeu5b99WpKfXeVbaTB9gHodalkELLo/w320-rw/banner-piala-dunia-2026.png",
     "position": {
       "horizontal": "left",
       "vertical": "center"
@@ -12,14 +12,14 @@
   "slider": {
     "enabled": true,
     "type": "wordpress",
-    "subdomain": "nature.harianexpress.com",
+    "subdomain": "bola.harianexpress.com",
     "filterType": "category",
-    "filterValue": "konservasi",
+    "filterValue": "Piala Dunia",
     "count": 5,
     "autoplaySpeed": 5000
   },
   "display": {
     "showOnSites": []
   },
-  "version": 1780473802944
+  "version": 1780981883876
 }
