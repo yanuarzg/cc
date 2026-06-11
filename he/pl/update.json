@@ -1,15 +1,17 @@
 {
   "name": "YZG AI Journalist",
   "slug": "harianexpress-journalist",
-  "version": "3.5.2",
-  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.5.2.zip",
-  "homepage": "https://yanuarzg.github.io/",
-  "requires": "6.0",
-  "tested": "6.8",
+  "version": "3.7.8",
+  "author": "YZG",
+  "homepage": "https://github.com/yanuarzg/cc/tree/main/he/pl",
+  "requires": "5.8",
+  "tested": "6.7",
   "requires_php": "7.4",
-  "last_updated": "2026-05-26 17:55:00",
+  "last_updated": "2026-06-11 00:00:00",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.7.8.zip",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.7.8.zip",
   "sections": {
-    "description": "White-label AI editorial assistant untuk WordPress.",
-    "changelog": "<h4>v3.5.2</h4><ul><li>Label input generator diubah menjadi Topik/Sumber Berita.</li><li>Prompt default Standar Jurnalistik diperbarui dengan prinsip Piramida Terbalik.</li><li>Spacing logo white-label diperbaiki.</li></ul>"
+    "description": "White-label AI editorial assistant untuk generate artikel, audit fakta, SEO metadata, gambar sumber/Pexels, social image, lisensi domain, dan kirim ke Draft WordPress.",
+    "changelog": "<h4>v3.7.8</h4><ul><li>Judul halaman lisensi dibuat dinamis menjadi Lisensi [nama branding].</li><li>Tombol Hapus Lisensi Lokal diubah menjadi link kecil hapus lisensi.</li><li>Detail Debug API dan Debug Remote API dihapus dari tampilan halaman lisensi.</li><li>Perbaikan tampilan halaman lisensi agar lebih bersih untuk penggunaan white-label.</li></ul>"
   }
 }
