@@ -1,17 +1,16 @@
 {
   "name": "YZG AI Journalist",
   "slug": "harianexpress-journalist",
-  "version": "3.7.8",
+  "version": "4.1.5",
   "author": "YZG",
-  "homepage": "https://github.com/yanuarzg/cc/tree/main/he/pl",
+  "homepage": "https://www.yztheme.my.id/",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
-  "last_updated": "2026-06-11 00:00:00",
-  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.7.8.zip",
-  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v3.7.8.zip",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v4.1.5.zip",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v4.1.5.zip",
   "sections": {
-    "description": "White-label AI editorial assistant untuk generate artikel, audit fakta, SEO metadata, gambar sumber/Pexels, social image, lisensi domain, dan kirim ke Draft WordPress.",
-    "changelog": "<h4>v3.7.8</h4><ul><li>Judul halaman lisensi dibuat dinamis menjadi Lisensi [nama branding].</li><li>Tombol Hapus Lisensi Lokal diubah menjadi link kecil hapus lisensi.</li><li>Detail Debug API dan Debug Remote API dihapus dari tampilan halaman lisensi.</li><li>Perbaikan tampilan halaman lisensi agar lebih bersih untuk penggunaan white-label.</li></ul>"
+    "description": "White-label AI editorial assistant dengan Auto Artikel, Google Trends, Global Trends, Manual Keyword SEO, Pexels image, rotasi API, dan integrasi WordPress.",
+    "changelog": "<h4>Version 4.1.5</h4><ul><li>Menambahkan dropdown Profil Penulis pada Auto Artikel.</li><li>Menampilkan status Keyword Manual: sudah dibuat, belum dibuat, link artikel, status post, dan waktu generate.</li><li>Jika semua keyword manual selesai dibuat, jadwal Auto Artikel dihentikan otomatis dan queue/lock dibersihkan.</li><li>Menambahkan RSS proxy fallback untuk Google Trends dan Global Trends.</li><li>Menambahkan endpoint proxy terbatas untuk RSS Google Trends dan TrendHunter.</li><li>Fitur Auto Artikel dikunci sampai lisensi domain valid.</li></ul>"
   }
 }
