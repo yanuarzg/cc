@@ -1114,14 +1114,8 @@
         alert('Keranjang masih kosong!')
         return
       }
-      
-      const nama = prompt('Masukkan nama kamu untuk pesanan:', '')
-      if (!nama || nama.trim() === '') {
-        alert('Nama wajib diisi untuk melanjutkan pesanan.')
-        return
-      }
-      
-      let message = `Halo Awicio Cireng,%0A%0ASaya *${nama}* ingin memesan:%0A%0A`
+            
+      let message = `Halo Awicio Cireng,%0A%0ASaya ingin memesan:%0A%0A`
       
       let total = 0
       Object.values(cart).forEach(item => {
