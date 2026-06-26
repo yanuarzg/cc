@@ -1,3 +1,10 @@
+.single-post .jl_sifea_img, .single-post .jl_sifea_img img {
+    max-width: -moz-available;
+    min-width: -moz-available;
+    max-width: -webkit-fill-available;
+    min-width: -webkit-fill-available;
+}
+
 #dynamic-news-nav {
     background: #161d24;
     min-height: 50px;
