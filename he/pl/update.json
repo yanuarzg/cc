@@ -1,16 +1,16 @@
 {
   "name": "YZG AI Journalist",
   "slug": "harianexpress-journalist",
-  "version": "4.1.5",
-  "author": "YZG",
+  "version": "5.0.7",
+  "author": "YzTheme",
   "homepage": "https://www.yztheme.my.id/",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
-  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v4.1.5.zip",
-  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v4.1.5.zip",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.0.7.zip",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.0.7.zip",
   "sections": {
-    "description": "White-label AI editorial assistant dengan Auto Artikel, Google Trends, Global Trends, Manual Keyword SEO, Pexels image, rotasi API, dan integrasi WordPress.",
-    "changelog": "<h4>Version 4.1.5</h4><ul><li>Menambahkan dropdown Profil Penulis pada Auto Artikel.</li><li>Menampilkan status Keyword Manual: sudah dibuat, belum dibuat, link artikel, status post, dan waktu generate.</li><li>Jika semua keyword manual selesai dibuat, jadwal Auto Artikel dihentikan otomatis dan queue/lock dibersihkan.</li><li>Menambahkan RSS proxy fallback untuk Google Trends dan Global Trends.</li><li>Menambahkan endpoint proxy terbatas untuk RSS Google Trends dan TrendHunter.</li><li>Fitur Auto Artikel dikunci sampai lisensi domain valid.</li></ul>"
+    "description": "Update upload manual image, drop down web categories, auto post beta, more..",
+    "changelog": "<h4>Version 5.0.7</h4><ul><li>Update upload manual image</li><li>drop down web categories</li><li>auto post beta</li><li>more..</li></ul>"
   }
 }
