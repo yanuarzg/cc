@@ -50,6 +50,9 @@
     h2.h3.jl_fe_title {
     font-size: 1.75rem!important;
     }
+    .jl_smmain_w {
+    max-width: 67%;
+    }
 }
 
 
