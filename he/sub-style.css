@@ -40,7 +40,7 @@
 }
 
 .jl_smmain_w {
-    max-width: 74%!important;
+    max-width: 74%;
     width: -webkit-fill-available;
     width: -moz-available;
 }
@@ -59,8 +59,8 @@
         padding-inline: 0;
     }
     .jl_smmain_w {
-    max-width:  -moz-available!important;
-    max-width:  -webkit-fill-available!important;
+    max-width:  -moz-available;
+    max-width:  -webkit-fill-available;
     }
 }
 
