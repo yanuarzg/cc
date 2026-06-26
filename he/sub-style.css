@@ -59,8 +59,8 @@
         padding-inline: 0;
     }
     .jl_smmain_w {
-    max-width:  -moz-available;
-    max-width:  -webkit-fill-available;
+    max-width:  -moz-available!important;
+    max-width:  -webkit-fill-available!important;
     }
 }
 
