@@ -512,7 +512,12 @@ iframe {
 	width: auto;
 	display: block;
 }
-
+.single-post .jl_sifea_img, .single-post .jl_sifea_img img {
+    max-width: -moz-available;
+    min-width: -moz-available;
+    max-width: -webkit-fill-available;
+    min-width: -webkit-fill-available;
+}
 .elementor-element.elementor-element-8c6dc34 {
 	padding-inline: 0.5rem;
 }
