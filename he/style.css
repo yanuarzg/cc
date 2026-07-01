@@ -519,8 +519,11 @@ iframe {
     min-width: -webkit-fill-available;
 }
 .single-post .jl_smmain_w {
-    max-width: 100%;
+    max-width: 74%;
+    width: -webkit-fill-available;
+    width: -moz-available;
 }
+
 .elementor-element.elementor-element-8c6dc34 {
 	padding-inline: 0.5rem;
 }
@@ -585,6 +588,9 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
     place-self: start;
     place-items: start;
     margin-block: 0;
+    }
+	   .single-post .jl_smmain_w {
+    max-width: 67%;
     }
 }
 
@@ -749,6 +755,10 @@ footer .e-con-boxed.e-con.e-parent:last-child .e-con-inner .e-con-full {
 	.page .elementor.elementor-23168 > *, .page footer#jl-footer-custpl > * > * {
 	    padding-inline: 1.5rem!important;
 	}
+	   .single-post .jl_smmain_w {
+    max-width:  -moz-available;
+    max-width:  -webkit-fill-available;
+    }
 }
 
 @media only screen and (max-width:450px) {
