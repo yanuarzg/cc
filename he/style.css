@@ -518,6 +518,9 @@ iframe {
     max-width: -webkit-fill-available;
     min-width: -webkit-fill-available;
 }
+.single-post .jl_smmain_w {
+    max-width: 100%;
+}
 .elementor-element.elementor-element-8c6dc34 {
 	padding-inline: 0.5rem;
 }
