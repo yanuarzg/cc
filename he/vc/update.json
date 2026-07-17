@@ -1,0 +1,20 @@
+{
+  "name": "HE Visitor Count REST Field",
+  "slug": "he-visitor-count-rest",
+  "plugin": "he-visitor-count-rest/he-visitor-count-rest.php",
+  "version": "1.1.0",
+  "new_version": "1.1.0",
+  "author": "Harian Express",
+  "homepage": "https://github.com/yanuarzg/cc/tree/main/he/vc",
+  "url": "https://github.com/yanuarzg/cc/tree/main/he/vc",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/vc/he-visitor-count-rest-v1.1.zip",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/vc/he-visitor-count-rest-v1.1.zip",
+  "requires": "4.7",
+  "requires_php": "7.0",
+  "last_updated": "2026-07-17 00:00:00",
+  "sections": {
+    "description": "Menambahkan field views dan views_source ke WordPress REST API dengan dukungan Bopea/JellyWP serta beberapa meta key visitor counter umum.",
+    "installation": "Unggah dan aktifkan plugin. Setelah aktif, akses endpoint REST API artikel dengan parameter _fields=id,title,views,views_source.",
+    "changelog": "<h4>1.1.0</h4><ul><li>Menambahkan dukungan meta key post_views_count.</li><li>Menambahkan deteksi beberapa meta key visitor counter.</li><li>Menambahkan field REST views_source untuk kebutuhan diagnosis.</li><li>Menambahkan normalisasi angka visitor counter.</li></ul>"
+  }
+}
