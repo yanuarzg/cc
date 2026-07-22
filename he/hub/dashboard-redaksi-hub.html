@@ -3103,8 +3103,8 @@ body.he-dashboard-page { background: var(--bg-light, #f0f0f0); }
   let CFG = { wpSources: [] };
 
   const CACHE_NAMESPACE = "harianexpress_authors";
-  const CACHE_SCHEMA_VERSION = 13;
-  const CACHE_DURATION = 30 * 60 * 1000;
+  const CACHE_SCHEMA_VERSION = 14;
+  const CACHE_DURATION = 2 * 60 * 1000;
   const STALE_CACHE_DURATION = 12 * 60 * 60 * 1000;
   const FETCH_TIMEOUT = 30000;
   const FETCH_HISTORY_MONTHS = 18;
@@ -3677,8 +3677,10 @@ body.he-dashboard-page { background: var(--bg-light, #f0f0f0); }
       renderSourceHealth();
       if (cached.isStale || shouldForceRefresh()) {
         notifyDashboard("Menampilkan cache sementara sambil memperbarui data terbaru.", "info");
-        refreshPostsInBackground();
       }
+      // Selalu cek Hub di belakang layar. Tampilan tetap instan dari localStorage,
+      // tetapi trafik tidak tertahan sampai cache browser kedaluwarsa.
+      refreshPostsInBackground(shouldForceRefresh());
       return cached.data;
     }
     showGlobalLoader(true, "Mengambil indeks artikel dan trafik dari Hub...");
@@ -3689,11 +3691,11 @@ body.he-dashboard-page { background: var(--bg-light, #f0f0f0); }
     } finally { showGlobalLoader(false); }
   }
 
-  async function refreshPostsInBackground() {
+  async function refreshPostsInBackground(forceRefresh = false) {
     if (refreshInProgress) return;
     refreshInProgress = true;
     try {
-      const freshPosts = await fetchFreshPosts();
+      const freshPosts = await fetchFreshPosts(forceRefresh);
       if (!freshPosts.length) return;
       writeCache(freshPosts);
       if (isPostListChanged(allPostsGlobal, freshPosts)) {
@@ -3710,7 +3712,10 @@ body.he-dashboard-page { background: var(--bg-light, #f0f0f0); }
       months: String(FETCH_HISTORY_MONTHS),
       limit: "30000"
     });
-    if (forceRefresh || shouldForceRefresh()) params.set("refresh", "1");
+    if (forceRefresh || shouldForceRefresh()) {
+      params.set("refresh", "1");
+      params.set("_ts", String(Date.now()));
+    }
 
     const endpoint = `${HUB_DASHBOARD_URL}?${params.toString()}`;
     const response = await fetchWithRetry(endpoint, {

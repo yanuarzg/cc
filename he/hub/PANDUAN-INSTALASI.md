@@ -1,4 +1,4 @@
-# HarianExpress Content Hub 1.1.0
+# HarianExpress Content Hub 1.1.1
 
 ## Tujuan pembaruan
 
@@ -7,7 +7,7 @@ Versi ini menggabungkan fungsi **HE Visitor Count REST Field** dan menyediakan e
 ## Pembaruan plugin
 
 1. Cadangkan database dan plugin lama.
-2. Unggah ZIP versi 1.1.0 melalui **Plugins → Add New → Upload Plugin**.
+2. Unggah ZIP versi 1.1.1 melalui **Plugins → Add New → Upload Plugin**.
 3. Pilih **Replace current with uploaded** bila WordPress meminta konfirmasi.
 4. Buka **Settings → HE Content Hub**.
 5. Pastikan mode, URL Hub, dan Network Secret tetap benar.
@@ -62,13 +62,13 @@ const HUB_DASHBOARD_URL = "https://harianexpress.com/wp-json/he-hub/v1/dashboard
 
 ## Mekanisme visitor sync
 
-Visitor count tidak dikirim pada setiap page view. Untuk mengurangi beban, Source mengirim pembaruan pada milestone, default setiap 25 views. Nilai terbaru juga selalu dikirim saat artikel diterbitkan, diperbarui, atau dibackfill.
+Perubahan trafik pertama pada sebuah artikel dikirim segera ke antrean. Perubahan berikutnya dalam interval yang sama digabung, lalu nilai terbaru dikirim ulang setelah jeda sinkronisasi. Nilai default adalah 60 detik dan dapat diubah di **Pengaturan → HE Content Hub → Jeda sinkronisasi trafik**.
 
-Filter untuk mengubah milestone:
+Filter opsional untuk mengubah jeda melalui kode:
 
 ```php
-add_filter('hech_visitor_push_step', function () {
-    return 10;
+add_filter('hech_visitor_sync_delay', function () {
+    return 60;
 });
 ```
 
@@ -101,3 +101,11 @@ https://github.com/yanuarzg/cc/tree/main/he/hub
 4. `trafficAvailable` bernilai `true` pada artikel yang memiliki meta visitor.
 5. Antrean Source kembali nol.
 6. Dashboard tidak lagi membuat request ke `/wp-json/wp/v2/posts` pada setiap subdomain.
+
+
+## Perubahan v1.1.1 — sinkronisasi trafik
+
+- Perubahan trafik pertama pada sebuah artikel dikirim segera.
+- Perubahan lanjutan digabung selama jeda sinkronisasi (default 60 detik), lalu nilai terakhir dikirim kembali.
+- Tombol **Perbarui Data** pada dashboard memakai `refresh=1` dan cache-buster.
+- Setelah update, tidak diperlukan backfill ulang; cukup proses antrean jika masih tersisa.
