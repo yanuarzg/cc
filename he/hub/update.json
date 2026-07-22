@@ -1,0 +1,21 @@
+{
+  "name": "HarianExpress Content Hub",
+  "slug": "harianexpress-content-hub",
+  "new_version": "1.1.0",
+  "version": "1.1.0",
+  "author": "HarianExpress",
+  "homepage": "https://github.com/yanuarzg/cc/tree/main/he/hub",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/hub/harianexpress-content-hub.zip",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/hub/harianexpress-content-hub.zip",
+  "sha256": "59d3efcf70fbc758e7dbb2eae8eb92b0f85b1349a38667aa6ff097c7c062d814",
+  "requires": "5.8",
+  "requires_php": "7.4",
+  "tested": "6.8",
+  "last_updated": "2026-07-22 12:00:00",
+  "short_description": "Hub artikel dan visitor analytics berbasis push untuk widget multi-source dan Dashboard Redaksi.",
+  "sections": {
+    "description": "Menggabungkan indeks artikel, visitor count, kompatibilitas widget lama, dan endpoint Dashboard Redaksi satu-request.",
+    "installation": "Unggah ZIP ke seluruh website. Gunakan mode Source + Hub pada situs pusat dan Source pada subdomain. Setelah update, lakukan backfill ulang.",
+    "changelog": "<h4>1.1.0</h4><ul><li>Visitor Count terintegrasi.</li><li>Endpoint dashboard satu-request.</li><li>Author dan trafik tersimpan di Hub.</li><li>Updater GitHub dengan SHA-256.</li></ul>"
+  }
+}
