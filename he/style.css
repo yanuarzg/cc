@@ -140,7 +140,7 @@ a.btn-primary.en {
 .dw header, .up header {
 	position: sticky;
 	top: 0;
-	z-index: 12;
+	z-index: 61;
 	-webkit-transition: all .1s ease;
 	transition: all .1s ease;
 	width: -webkit-fill-available;
