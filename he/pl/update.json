@@ -1,16 +1,16 @@
 {
   "name": "YZG AI Journalist",
   "slug": "harianexpress-journalist",
-  "version": "5.2.3",
+  "version": "5.2.6",
   "author": "YzTheme",
   "homepage": "https://www.yztheme.my.id/",
   "requires": "5.8",
   "tested": "6.7",
   "requires_php": "7.4",
-  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.2.3.zip",
-  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.2.3.zip",
+  "download_url": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.2.6.zip",
+  "package": "https://raw.githubusercontent.com/yanuarzg/cc/main/he/pl/he-journalist-ai-pro-v5.2.6.zip",
   "sections": {
-    "description": "Slimmer and focus generator.",
-    "changelog": "<h4>Version 5.2.3</h4><ul><li>Menambahkan shorcut di adminbar</li><li>Menghilangkan fitur yang melebar</li><li>Optimasi fitur sosmed image</li></ul>"
+    "description": "Custom Image Generator",
+    "changelog": "<h4>Version 5.2.6</h4><ul><li>customizable image generato</li><li>more....</li></ul>"
   }
 }
