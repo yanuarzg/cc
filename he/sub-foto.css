@@ -1,1 +1,16 @@
 img.attachment-bopea_large.size-bopea_large.wp-post-image {display:none!important;}
+.lb-gallery img {
+    width: calc(33.333% - 10px)!important;
+    max-width: calc(33.333% - 10px)!important;
+    min-width: calc(33.333% - 10px)!important;
+    cursor: zoom-in;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .lb-gallery img {
+    width: calc(50% - 10px)!important;
+    max-width: calc(50% - 10px)!important;
+    min-width: calc(50% - 10px)!important;
+  }
+}
